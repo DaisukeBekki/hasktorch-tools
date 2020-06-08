@@ -1,0 +1,38 @@
+resolver: lts-14.27
+
+flags: {}
+
+extra-include-dirs:
+  - ../../.local/lib/hasktorch/deps/pytorch/torch/include
+  - ../../.local/lib/hasktorch/deps/pytorch/torch/csrc/api/include
+  - ../../.local/lib/hasktorch/mklml/include
+
+extra-lib-dirs:
+  - ../../.local/lib/hasktorch/deps/pytorch/torch/lib
+  - ../../.local/lib/hasktorch/mklml/lib
+
+extra-deps:
+  - ../../.local/lib/hasktorch/codegen
+  - ../../.local/lib/hasktorch/libtorch-ffi
+  - ../../.local/lib/hasktorch/hasktorch
+  - template-0.2.0.10@sha256:f822de4d34c45bc84b33a61bc112c15fedee6fa6dc414c62b10456395a868f85
+  - inline-c-0.9.0.0
+  - inline-c-cpp-0.4.0.0
+  - Chart-cairo-1.9.1
+  - cairo-0.13.8.0
+  - gtk2hs-buildtools-0.13.8.0
+  - git: git://github.com/hasktorch/pipes-text.git
+    commit: 3dd3d9519306ea06f0c15ad71bdf57e1dfd0b747
+#  - req-3.1.0
+  - aeson-1.4.7.1
+  - aeson-lens-0.5.0.0
+  - ../jsem
+
+build:
+  haddock: false
+  haddock-arguments:
+    haddock-args:
+    - --odir=haddock
+  open-haddocks: false
+  haddock-internal: false
+  haddock-hyperlink-source: true

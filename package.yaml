@@ -1,0 +1,106 @@
+name:                hasktorch-tools
+version:             0.1.0.0
+github:              "githubuser/hasktorch-tools"
+license:             BSD3
+author:              Daisuke Bekki
+maintainer:          "example@example.com"
+copyright:           "2020 Author name here"
+synopsis:            Haskell Tools for Deep Learning via PyTorch
+category:            Machine Learining
+ghc-options:         -Wall
+extra-source-files:
+- README.md
+- ChangeLog.md
+description:         https://github.com/githubuser/hasktorch-tools#readme
+
+dependencies:
+- base >= 4.7 && < 5
+- hasktorch >= 0.2
+- libtorch-ffi == 1.4.*
+- codegen >= 0.1
+- async
+- finite-typelits
+- ghc-typelits-extra >= 0.3.1
+- ghc-typelits-knownnat >= 0.7
+- ghc-typelits-natnormalise >= 0.7
+- ghc-typelits-extra
+- ghc-typelits-knownnat
+- ghc-typelits-natnormalise
+- mtl
+- safe-exceptions
+- reflection
+- singletons
+- stm
+- JuicyPixels
+- vector
+- bytestring
+- safe-exceptions
+- zlib >= 0.6
+# hasktorch-tools
+- text >= 1.2
+- split >= 0.2
+- filepath >= 1.4
+- containers >= 0.6
+- gnuplot >=0.5.5
+- jsem >= 0.1
+
+library:
+  source-dirs: src
+  default-extensions:
+  - OverloadedStrings
+  - MultiParamTypeClasses
+  - RecordWildCards
+  exposed-modules:
+  - Torch.Control
+  - Torch.Train
+  - Torch.Layer.Linear
+  - Torch.Layer.MLP
+  - Torch.Layer.LSTM
+  - Torch.Util.Classification
+  - Torch.Util.Dict
+  - Torch.Util.Chart
+  
+executables:
+  test:
+    main:                Main.hs
+    source-dirs:         app/test
+    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies:
+      - hasktorch-tools
+#      - finite-typelits >= 0.1
+  regression:
+    main:                Main.hs
+    source-dirs:         app/regression
+    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies:
+      - hasktorch-tools
+#  getCovid19data:
+#    main:                Main.hs
+#    source-dirs:         app/covid19
+#    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies:
+##      - http-conduit >= 2.3
+##      - req >= 3.1
+#      - lens >= 0.4
+#      - aeson >= 1.4
+#      - aeson-lens >= 0.5
+#      - bytestring
+  xor-mlp:
+    main:                Main.hs
+    source-dirs:         app/xor-mlp
+    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies:
+      - hasktorch-tools
+#  lstm:
+#    main:                Main.hs
+#    source-dirs:         app/lstm
+#    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies:
+#      - hasktorch-tools
+
+tests:
+  hasktorch-tools-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
