@@ -1,7 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards #-}
-
 module Main where
 
 --hasktorch
@@ -9,6 +5,7 @@ import Torch.Tensor (TensorLike(..),toCPU)
 import Torch.Functional (mseLoss,add)
 import Torch.NN         (sample)
 import Torch.Optim      (GD(..))
+--hasktorch-tools
 import Torch.Train      (update,showLoss,zeroTensor,saveParams) --, loadParams)
 import Torch.Control    (mapAccumM,foldLoop)
 import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
