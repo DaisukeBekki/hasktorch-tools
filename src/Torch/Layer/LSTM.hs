@@ -7,7 +7,7 @@ import GHC.Generics       --base
 import Data.List (scanl') --base
                           --hasktorch
 import Torch.Tensor       (Tensor(..))
-import Torch.Functional   (sigmoid,tanh,cat)
+import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
@@ -35,7 +35,7 @@ instance Randomizable LSTMHypParams LSTMParams where
 
 lstmCell :: LSTMParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
 lstmCell LSTMParams{..} (ct,ht) xt =
-  let xt_ht = cat 0 [xt,ht]
+  let xt_ht = cat (Dim 0) [xt,ht]
       ct' = ct * (sigmoid $ linearLayer forgetGate $ xt_ht)
             + (tanh xt_ht) * (sigmoid $ linearLayer inputGate $ xt_ht)
       ht' = (tanh ct') * (sigmoid $ linearLayer outputGate $ xt_ht)

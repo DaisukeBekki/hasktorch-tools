@@ -12,7 +12,7 @@ import Text.Printf   (printf)   --base
 
 import Torch.Tensor    (Tensor(..),reshape)
 import Torch.TensorFactories (zeros')
-import Torch.Functional (sumAll,cat)
+import Torch.Functional (Dim(..),sumAll,cat)
 import Torch.NN        (Parameterized(..),Randomizable(..),replaceParameters)
 import Torch.Autograd  (IndependentTensor(..),makeIndependent,grad)
 import Torch.Optim     (Optimizer(..),Gradients(..))
@@ -39,7 +39,7 @@ zeroTensor :: Tensor
 zeroTensor = zeros' []
 
 sumTensors :: [Tensor] -> Tensor
-sumTensors ts = sumAll $ cat 0 $ map (reshape [1]) ts
+sumTensors ts = sumAll $ cat (Dim 0) $ map (reshape [1]) ts
 
 saveParams :: (Parameterized param) => param -> FilePath -> IO()
 saveParams params = save (map toDependent $ flattenParameters params) 

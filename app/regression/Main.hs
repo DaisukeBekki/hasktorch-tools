@@ -28,7 +28,7 @@ main = do
     let batchLoss = foldLoop trainingData zeroTensor $ \(input,output) loss ->
                       let y' = linearLayer model $ toCPU $ asTensor input
                           y = toCPU $ asTensor output
-                      in add loss $ mseLoss y' y
+                      in add loss $ mseLoss y y'
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
     u <- update model opt batchLoss 5e-4
