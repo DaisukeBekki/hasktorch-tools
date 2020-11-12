@@ -1,24 +1,28 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Torch.Layer.LSTM where 
+module Torch.Layer.LSTM (
+  LSTMHypParams(..),
+  LSTMParams(..),
+  lstm
+  ) where 
 
 import Prelude hiding (tanh) 
 import GHC.Generics       --base
 import Data.List (scanl') --base
-                          --hasktorch
+--hasktorch
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
 data LSTMHypParams = LSTMHypParams {
-  inputDim :: Int,
-  outputDim :: Int
+  stateDim :: Int
   } deriving (Eq, Show)
 
 data LSTMParams = LSTMParams {
   forgetGate :: LinearParams,
   inputGate :: LinearParams,
+  candidateGate :: LinearParams,
   outputGate :: LinearParams
   } deriving (Show, Generic)
 
@@ -26,24 +30,32 @@ instance Parameterized LSTMParams
 
 instance Randomizable LSTMHypParams LSTMParams where
   sample LSTMHypParams{..} = do
-    let hiddenStateDim = outputDim
-        cellStateDim = hiddenStateDim + inputDim 
+    let x_Dim = stateDim
+        h_Dim = stateDim
+        c_Dim = stateDim
+        xh_Dim = x_Dim + h_Dim
     LSTMParams
-      <$> sample (LinearHypParams cellStateDim cellStateDim)
-      <*> sample (LinearHypParams cellStateDim cellStateDim)
-      <*> sample (LinearHypParams cellStateDim cellStateDim)
+      <$> sample (LinearHypParams xh_Dim c_Dim)
+      <*> sample (LinearHypParams xh_Dim c_Dim)
+      <*> sample (LinearHypParams xh_Dim c_Dim)
+      <*> sample (LinearHypParams xh_Dim h_Dim)
 
 lstmCell :: LSTMParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
 lstmCell LSTMParams{..} (ct,ht) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
-      ct' = ct * (sigmoid $ linearLayer forgetGate $ xt_ht)
-            + (tanh xt_ht) * (sigmoid $ linearLayer inputGate $ xt_ht)
-      ht' = (tanh ct') * (sigmoid $ linearLayer outputGate $ xt_ht)
+      ft = sigmoid $ linearLayer forgetGate $ xt_ht
+      it = sigmoid $ linearLayer inputGate $ xt_ht
+      cant = tanh $ linearLayer candidateGate $ xt_ht
+      ct' = (ft * ct) + (it * cant)
+      ot = sigmoid $ linearLayer outputGate $ xt_ht
+      ht' = ot * (tanh ct')
   in (ct', ht')
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
-lstm :: LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
-lstm params (cellState,hiddenState) inputs = scanl' (lstmCell params) (cellState,hiddenState) inputs
+lstm :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
+lstm params cellState hiddenState inputs = scanl' (lstmCell params) (cellState,hiddenState) inputs
+
+--bilstm :: 
 
 -- squeezeAll??

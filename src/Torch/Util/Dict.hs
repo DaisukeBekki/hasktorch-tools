@@ -2,12 +2,10 @@ module Torch.Util.Dict (
   bit,
   bits,
   oneHot,
-  Hist,
-  pushWords,
+  oneHotFactory,
   toList,
   Torch.Util.Dict.lookup,
   fetchIndex,
-  filterHistByValue,
   labelTensor,
   labels2vec,
   labels2num,
@@ -45,16 +43,28 @@ oneHot dim nth = replicate nth (0::Float) ++ ((1::Float):(replicate (dim-nth-1) 
   
 type Hist a = M.Map a Int
 
+-- | a型のリスト（例；単語列）からヒストグラムを作る
 pushWords :: (Ord a) => [a] -> Hist a
 pushWords = L.foldl' f M.empty
   where f hist key = M.insertWith (+) key (1::Int) hist
 
-filterHistByValue :: (Int -> Bool) -> Hist a -> Hist a
-filterHistByValue = M.filter
+-- | a型のリスト（例：単語列）から、出現数thresholdを超える要素のリストを作り、
+-- | a型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
+oneHotFactory :: (Ord a) => Int -> [a] -> (a -> [Float],Int)
+oneHotFactory threshold wrds =
+  let dic = fst $ unzip $ reverse $ L.sortOn snd $ M.toList $ filterHistByValue (> threshold) $ pushWords wrds
+      dim = (length dic) + 1
+  in (\wrd -> oneHot dim $ case L.elemIndex wrd dic of
+                             Just i  -> i + 1
+                             Nothing -> 0
+     , dim)
+  where filterHistByValue = M.filter -- :: (Int -> Bool) -> Hist a -> Hist a 例：M.filter (> 3) map、でvalueが3より大きいエントリのみ残る
 
+-- | ヒストグラムを（語,出現数）のリストに変換
 toList :: (Ord a) => Hist a -> [(a,Int)]
 toList = M.toList
 
+-- | 語とヒストグラムから出現数を返す（語がヒストグラムに含まれなければNothing）
 lookup :: (Ord a) => a -> Hist a -> Maybe Int
 lookup = M.lookup
 
