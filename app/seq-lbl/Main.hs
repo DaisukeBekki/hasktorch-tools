@@ -84,8 +84,8 @@ instance Randomizable HypParams Params where
 
 main :: IO()
 main = do
-  let iter = 3000::Int
-      lstm_dim = 2
+  let iter = 100::Int
+      lstm_dim = 10
       learningRate = 5e-4
       graphFileName = "graph-seq.png"
       modelFileName = "seq.model"
@@ -93,7 +93,7 @@ main = do
       hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
   initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
+    let lstm = lstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
         embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ trainData
         ys' = map (linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
         ys  = map asTensor $ snd $ unzip $ trainData
