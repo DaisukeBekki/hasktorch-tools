@@ -18,8 +18,8 @@ import Torch.Autograd   (IndependentTensor(..),makeIndependent)
 import Torch.Optim      (GD(..))
 import Torch.Train      (update,showLoss,zeroTensor,saveParams) --, loadParams)
 import Torch.Control    (mapAccumM,foldLoop)
-import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
-import Torch.Layer.LSTM (LSTMHypParams(..),LSTMParams,lstm)
+import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
+import Torch.Layer.LSTM (LSTMHypParams(..),LSTMParams,lstmLayer,bilstmLayer)
 import Torch.Util.Chart (drawLearningCurve)
 import Torch.Util.Dict (oneHotFactory)
 
@@ -60,15 +60,15 @@ testData = [
 
 data HypParams = HypParams {
   lstmHypParams :: LSTMHypParams,
-  wemb_input_dim :: Int,
-  wemb_output_dim :: Int
+  wemb_dim :: Int
   } deriving (Eq, Show)
 
 data Params = Params {
   lstmParams :: LSTMParams,
   c0 :: Parameter,
   h0 :: Parameter,
-  w_emb :: Parameter
+  w_emb :: Parameter,
+  mlpParams :: LinearParams
   } deriving (Show, Generic)
 
 instance Parameterized Params
@@ -77,35 +77,35 @@ instance Randomizable HypParams Params where
   sample HypParams{..} = do
     Params
       <$> sample lstmHypParams
-      <*> (makeIndependent =<< randnIO' [wemb_output_dim])
-      <*> (makeIndependent =<< randnIO' [wemb_output_dim])
-      <*> (makeIndependent =<< randnIO' [wemb_input_dim, wemb_output_dim])
+      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams, wemb_dim])
+      <*> sample (LinearHypParams (stateDim lstmHypParams) 1)
 
 main :: IO()
 main = do
-  let iter = 50::Int
+  let iter = 3000::Int
+      lstm_dim = 2
+      learningRate = 5e-4
+      graphFileName = "graph-seq.png"
+      modelFileName = "seq.model"
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
-  -- putStrLn $ show $ asTensor $ oneHotFor "土地"
-  -- putStrLn $ show $ asTensor $ oneHotFor "の"
-  initModel <- sample $ HypParams (LSTMHypParams 5 5) 5 wemb_dim
-  let l = lstm (lstmParams initModel) (toDependent $ c0 initModel) (toDependent $ h0 initModel)
-      i = map (asTensor . oneHotFor) ["土地","の","もの","が"]
-  putStrLn $ show $ (toDependent $ w_emb initModel) `matmul` (asTensor $ oneHotFor "土地")
-  putStrLn $ show $ l i
-  {-
+      hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
+  initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let batchLoss = foldLoop trainData zeroTensor $ \(input,output) loss ->
-                      let y' = linearLayer model $ toCPU $ asTensor input
-                          y = toCPU $ asTensor output
-                      in add loss $ mseLoss y y'
+    let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
+        embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ trainData
+        ys' = map (linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
+        ys  = map asTensor $ snd $ unzip $ trainData
+        batchLoss = foldLoop (zip ys' ys) zeroTensor $ \(y',y) loss ->
+                      add loss $ mseLoss y y'
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
-    u <- update model opt batchLoss 5e-4
+    u <- update model opt batchLoss learningRate
     return (u, lossValue)
-  --saveParams trainedModel "regression.model"
+  --saveParams trainedModel modelFileName
   --mapM_ (putStr . printf "%2.3f ") $ reverse allLosses
-  drawLearningCurve "graph-seq.png" "Learning Curve" [("", reverse losses)]
-  --loadedModel <- loadParams (Lin:@earHypParams 1 1) "regression.moxdel"
+  drawLearningCurve graphFileName "Learning Curve" [("", reverse losses)]
+  --loadedModel <- loadParams hyperParams modelFileName
   --print loadedModel
-  -}
 

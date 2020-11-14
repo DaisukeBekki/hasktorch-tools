@@ -7,11 +7,11 @@ module Torch.Control (
 import Control.Monad (foldM)           --base
 import Data.List     (foldl')          --base
 
--- | syntactic sugar for looping with foldM
+-- | syntactic sugar for looping with foldl'
 foldLoop :: (Foldable t) => t a -> b -> (a -> b -> b) -> b
 foldLoop xs zero f = foldl' (flip f) zero xs
 
-
+-- | syntactic sugar for looping with foldM
 foldLoopM :: (Foldable t, Monad m) => t a -> b -> (a -> b -> m b) -> m b
 foldLoopM xs zero f = foldM (flip f) zero xs
 
