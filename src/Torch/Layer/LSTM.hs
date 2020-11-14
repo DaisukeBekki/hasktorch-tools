@@ -3,7 +3,8 @@
 module Torch.Layer.LSTM (
   LSTMHypParams(..),
   LSTMParams(..),
-  lstm
+  lstmLayer,
+  bilstmLayer
   ) where 
 
 import Prelude hiding (tanh) 
@@ -53,9 +54,11 @@ lstmCell LSTMParams{..} (ct,ht) xt =
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
-lstm :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
-lstm params cellState hiddenState inputs = scanl' (lstmCell params) (cellState,hiddenState) inputs
+lstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
+lstmLayer params c0 h0 inputs = scanl' (lstmCell params) (c0,h0) inputs
 
---bilstm :: 
+bilstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
+bilstmLayer params c0 h0 inputs =
+  let firstLayer = scanl' (lstmCell params) (c0,h0) inputs in
+  reverse $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
 
--- squeezeAll??
