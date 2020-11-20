@@ -12,7 +12,7 @@ import qualified Data.Map.Strict as M --
 --hasktorch
 import Torch.Tensor (TensorLike(..),toCPU)
 import Torch.TensorFactories (randnIO')
-import Torch.Functional (mseLoss,add,matmul)
+import Torch.Functional (sigmoid,mseLoss,add,matmul)
 import Torch.NN         (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd   (IndependentTensor(..),makeIndependent)
 import Torch.Optim      (GD(..))
@@ -53,7 +53,7 @@ testData :: [(Dat,Float)]
 testData = [
   ("長野",1),
   ("は",0),
-  ("土地",0),
+  ("県",0),
   ("です",0),
   ("。",0)
   ]
@@ -84,8 +84,8 @@ instance Randomizable HypParams Params where
 
 main :: IO()
 main = do
-  let iter = 100::Int
-      lstm_dim = 10
+  let iter = 200::Int
+      lstm_dim = 512
       learningRate = 5e-4
       graphFileName = "graph-seq.png"
       modelFileName = "seq.model"
@@ -93,9 +93,9 @@ main = do
       hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
   initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let lstm = lstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
+    let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
         embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ trainData
-        ys' = map (linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
+        ys' = map (sigmoid . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
         ys  = map asTensor $ snd $ unzip $ trainData
         batchLoss = foldLoop (zip ys' ys) zeroTensor $ \(y',y) loss ->
                       add loss $ mseLoss y y'
