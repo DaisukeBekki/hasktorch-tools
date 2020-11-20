@@ -44,7 +44,7 @@ dependencies:
 - containers >= 0.6
 - gnuplot >=0.5.5
 - jsem >= 0.1
-# - juman-tools >= 0.1
+- juman-tools >= 0.1
 
 library:
   source-dirs: src
@@ -93,12 +93,6 @@ executables:
     ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies:
       - hasktorch-tools
-#  lstm:
-#    main:                Main.hs
-#    source-dirs:         app/lstm
-#    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-#    dependencies:
-#      - hasktorch-tools
 #  getCovid19data:
 #    main:                Main.hs
 #    source-dirs:         app/covid19
