@@ -10,9 +10,9 @@ import qualified Data.Text as T       --text
 import qualified Data.List as L       --base
 import qualified Data.Map.Strict as M --
 --hasktorch
-import Torch.Tensor (TensorLike(..),toCPU)
+import Torch.Tensor (Tensor(..),TensorLike(..),toCPU,reshape)
 import Torch.TensorFactories (randnIO')
-import Torch.Functional (Dim(..),softmax,mseLoss,add,matmul,nllLoss')
+import Torch.Functional (Dim(..),cat,logSoftmax,mseLoss,add,matmul,nllLoss')
 import Torch.NN         (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd   (IndependentTensor(..),makeIndependent)
 import Torch.Optim      (GD(..))
@@ -54,7 +54,10 @@ testData :: [(Dat,Label)]
 testData = [
   ("長野",Important),
   ("は",NotImportant),
-  ("県",SoSo),
+  ("果物作り",Important),
+  ("に",NotImportant),
+  ("適した",SoSo),
+  ("場所",SoSo),
   ("です",NotImportant),
   ("。",NotImportant)
   ]
@@ -94,23 +97,25 @@ main = do
       hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
   initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
-        embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ trainData
-        ys' = map (softmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
-        ys  = map (\lbl -> asTensor $ case lbl of
-                                        Important -> [1,0,0]::[Float]
-                                        SoSo -> [0,1,0]::[Float]
-                                        NotImportant -> [0,0,1]::[Float]
-                                        ) $ snd $ unzip $ trainData
-        batchLoss = foldLoop (zip ys' ys) zeroTensor $ \(y',y) loss ->
-                      add loss $ nllLoss' y y'
+    let (_,_,batchLoss) = feedForward model oneHotFor trainData 
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
     u <- update model opt batchLoss learningRate
     return (u, lossValue)
-  --saveParams trainedModel modelFileName
-  --mapM_ (putStr . printf "%2.3f ") $ reverse allLosses
+  saveParams trainedModel modelFileName
   drawLearningCurve graphFileName "Learning Curve" [("", reverse losses)]
   --loadedModel <- loadParams hyperParams modelFileName
-  --print loadedModel
+  let (y',y,loss) = feedForward trainedModel oneHotFor testData
+  putStrLn $ show y'
+  putStrLn $ show $ map (\v -> (toEnum v)::Label) $ asValue y
+  putStrLn $ show $ ((asValue loss)::Float)
+
+-- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
+feedForward :: Params -> (T.Text -> [Float]) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
+feedForward model oneHotFor dataSet = 
+  let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
+      embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
+      y' = cat (Dim 0) $ map (reshape [1,3] . logSoftmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
+      y  = cat (Dim 0) $ map (reshape [1] . asTensor . fromEnum) $ snd $ unzip $ dataSet
+  in (y', y, nllLoss' y y')
 
