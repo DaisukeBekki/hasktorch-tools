@@ -36,6 +36,10 @@ instance Show ClassificationReport where
     "f1=" ++ (show f1) ++ ", " ++
     "support=" ++ (show support)
 
+-- | 表示する際のラベル名の表示文字数
+labelLength :: Int
+labelLength = 5
+
 -- | ラベルの型はBounded (Prelude)であると仮定
 -- 例：data Fruit = Orange | Apple | Grape deriving (Eq,Show,Bounded)
 --     [minBound..maxBound::Fruit]で[Orange,Apple,Grape]を作れる
@@ -149,13 +153,13 @@ showConfusionMatrix results =
     "|\t",
     T.concat $ for labels $ \answer -> T.concat [
        "| ",
-       T.pack $ show answer,
+       T.pack $ take labelLength $ show $ answer,
        "\t"
        ],
     "|\n",
     T.unlines $ for labels $ \prediction -> T.concat [
        "| ",
-       T.pack $ show prediction,
+       T.pack $ take labelLength $ show $ prediction,
        "\t",
        T.concat $ for labels $ \answer -> T.concat [
            "| ",
@@ -187,7 +191,7 @@ showClassificationReport results =
     formatReport :: ClassificationReport -> T.Text
     formatReport repo = T.concat [
       "| ",
-      title repo,
+      T.take labelLength $ title repo,
       "\t| ",
       T.intercalate "\t| " $ map (\action -> T.pack $ printf "%3.3f" $ action repo) [precision, recall, f1],
       "\t| ",
