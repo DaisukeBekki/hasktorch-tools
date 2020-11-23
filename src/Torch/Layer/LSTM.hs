@@ -55,10 +55,10 @@ lstmCell LSTMParams{..} (ct,ht) xt =
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
 lstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
-lstmLayer params c0 h0 inputs = scanl' (lstmCell params) (c0,h0) inputs
+lstmLayer params c0 h0 inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
 bilstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
 bilstmLayer params c0 h0 inputs =
-  let firstLayer = scanl' (lstmCell params) (c0,h0) inputs in
-  reverse $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
+  let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
+  reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
 
