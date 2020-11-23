@@ -8,6 +8,8 @@ module Main where
 import GHC.Generics                   --base
 import qualified Data.Text as T       --text
 import qualified Data.Text.IO as T    --text
+import Data.Serialize (encodeLazy,decodeLazy) --cereal
+import qualified Data.Serialize.Text as T --cereal-text
 import qualified Data.List as L       --base
 --hasktorch
 import Torch.Tensor       (Tensor(..),TensorLike(..),toCPU,reshape)
@@ -91,7 +93,7 @@ instance Randomizable HypParams Params where
 
 main :: IO()
 main = do
-  let iter = 1000::Int
+  let iter = 500::Int
       lstm_dim = 64
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
       hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
@@ -113,12 +115,14 @@ main = do
   let (y,_, _) = feedForward loadedModel oneHotFor toCPU testData
       indices = asValue $ argmax (Dim 1) RemoveDim y
       ans = map (\v -> (toEnum v)::Label) indices
+      b = encodeLazy wrds
   putStrLn "\nPredictions:"
   T.putStrLn $ T.intercalate "\t" $ fst $ unzip $ testData 
   putStrLn $ L.intercalate "\t" $ map (take 6 . show) ans
   putStr "\n"
   -- |
   T.putStr $ showClassificationReport $ zip (snd $ unzip $ testData) ans
+
 
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
 feedForward :: Params -> (T.Text -> [Float]) -> (Tensor -> Tensor) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
