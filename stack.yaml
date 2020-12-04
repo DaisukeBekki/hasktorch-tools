@@ -24,7 +24,7 @@ extra-deps:
   - ghc-typelits-knownnat-0.7
   - ghc-typelits-extra-0.3.2
 # examples/typed-transformer
-  - git: git://github.com/hasktorch/pipes-text.git
+  - git: https://github.com/hasktorch/pipes-text.git
     commit: 3dd3d9519306ea06f0c15ad71bdf57e1dfd0b747
 # experimental/dataloader-cifar10
   - datasets-0.4.0 #@sha256:9bfd5b54c6c5e1e72384a890cf29bf85a02007e0a31c98753f7d225be3c7fa6a,4929
@@ -39,7 +39,7 @@ extra-deps:
   - aeson-lens-0.5.0.0
   - ../jsem
   - ../juman-tools
-  - git: git://github.com/creswick/chatter.git
+  - git: https://github.com/creswick/chatter.git
     commit: a10cb59f5d70fd2a5def35a319ea254a2db3004d
   - cereal-0.5.7.0
   - fullstop-0.1.4

@@ -1,0 +1,221 @@
+Epoc:    5  --->  Loss: 0.948581
+Epoc:   10  --->  Loss: 0.937334
+Epoc:   15  --->  Loss: 0.929562
+Epoc:   20  --->  Loss: 0.922673
+Epoc:   25  --->  Loss: 0.916269
+Epoc:   30  --->  Loss: 0.910229
+Epoc:   35  --->  Loss: 0.904501
+Epoc:   40  --->  Loss: 0.899050
+Epoc:   45  --->  Loss: 0.893855
+Epoc:   50  --->  Loss: 0.888894
+Epoc:   55  --->  Loss: 0.884151
+Epoc:   60  --->  Loss: 0.879610
+Epoc:   65  --->  Loss: 0.875257
+Epoc:   70  --->  Loss: 0.871079
+Epoc:   75  --->  Loss: 0.867063
+Epoc:   80  --->  Loss: 0.863198
+Epoc:   85  --->  Loss: 0.859474
+Epoc:   90  --->  Loss: 0.855881
+Epoc:   95  --->  Loss: 0.852409
+Epoc:  100  --->  Loss: 0.849051
+Epoc:  105  --->  Loss: 0.845799
+Epoc:  110  --->  Loss: 0.842645
+Epoc:  115  --->  Loss: 0.839582
+Epoc:  120  --->  Loss: 0.836605
+Epoc:  125  --->  Loss: 0.833708
+Epoc:  130  --->  Loss: 0.830885
+Epoc:  135  --->  Loss: 0.828131
+Epoc:  140  --->  Loss: 0.825442
+Epoc:  145  --->  Loss: 0.822814
+Epoc:  150  --->  Loss: 0.820241
+Epoc:  155  --->  Loss: 0.817721
+Epoc:  160  --->  Loss: 0.815250
+Epoc:  165  --->  Loss: 0.812826
+Epoc:  170  --->  Loss: 0.810444
+Epoc:  175  --->  Loss: 0.808102
+Epoc:  180  --->  Loss: 0.805798
+Epoc:  185  --->  Loss: 0.803528
+Epoc:  190  --->  Loss: 0.801292
+Epoc:  195  --->  Loss: 0.799085
+Epoc:  200  --->  Loss: 0.796908
+Epoc:  205  --->  Loss: 0.794757
+Epoc:  210  --->  Loss: 0.792630
+Epoc:  215  --->  Loss: 0.790527
+Epoc:  220  --->  Loss: 0.788444
+Epoc:  225  --->  Loss: 0.786381
+Epoc:  230  --->  Loss: 0.784335
+Epoc:  235  --->  Loss: 0.782305
+Epoc:  240  --->  Loss: 0.780290
+Epoc:  245  --->  Loss: 0.778286
+Epoc:  250  --->  Loss: 0.776293
+Epoc:  255  --->  Loss: 0.774308
+Epoc:  260  --->  Loss: 0.772329
+Epoc:  265  --->  Loss: 0.770352
+Epoc:  270  --->  Loss: 0.768376
+Epoc:  275  --->  Loss: 0.766396
+Epoc:  280  --->  Loss: 0.764408
+Epoc:  285  --->  Loss: 0.762407
+Epoc:  290  --->  Loss: 0.760386
+Epoc:  295  --->  Loss: 0.758338
+Epoc:  300  --->  Loss: 0.756256
+Epoc:  305  --->  Loss: 0.754128
+Epoc:  310  --->  Loss: 0.751948
+Epoc:  315  --->  Loss: 0.749707
+Epoc:  320  --->  Loss: 0.747406
+Epoc:  325  --->  Loss: 0.745053
+Epoc:  330  --->  Loss: 0.742666
+Epoc:  335  --->  Loss: 0.740277
+Epoc:  340  --->  Loss: 0.737916
+Epoc:  345  --->  Loss: 0.735615
+Epoc:  350  --->  Loss: 0.733393
+Epoc:  355  --->  Loss: 0.731261
+Epoc:  360  --->  Loss: 0.729219
+Epoc:  365  --->  Loss: 0.727262
+Epoc:  370  --->  Loss: 0.725381
+Epoc:  375  --->  Loss: 0.723568
+Epoc:  380  --->  Loss: 0.721811
+Epoc:  385  --->  Loss: 0.720101
+Epoc:  390  --->  Loss: 0.718432
+Epoc:  395  --->  Loss: 0.716795
+Epoc:  400  --->  Loss: 0.715185
+Epoc:  405  --->  Loss: 0.713596
+Epoc:  410  --->  Loss: 0.712026
+Epoc:  415  --->  Loss: 0.710470
+Epoc:  420  --->  Loss: 0.708926
+Epoc:  425  --->  Loss: 0.707391
+Epoc:  430  --->  Loss: 0.705864
+Epoc:  435  --->  Loss: 0.704342
+Epoc:  440  --->  Loss: 0.702825
+Epoc:  445  --->  Loss: 0.701311
+Epoc:  450  --->  Loss: 0.699800
+Epoc:  455  --->  Loss: 0.698291
+Epoc:  460  --->  Loss: 0.696783
+Epoc:  465  --->  Loss: 0.695275
+Epoc:  470  --->  Loss: 0.693767
+Epoc:  475  --->  Loss: 0.692259
+Epoc:  480  --->  Loss: 0.690750
+Epoc:  485  --->  Loss: 0.689240
+Epoc:  490  --->  Loss: 0.687728
+Epoc:  495  --->  Loss: 0.686215
+Epoc:  500  --->  Loss: 0.684700
+Epoc:  505  --->  Loss: 0.683183
+Epoc:  510  --->  Loss: 0.681663
+Epoc:  515  --->  Loss: 0.680141
+Epoc:  520  --->  Loss: 0.678616
+Epoc:  525  --->  Loss: 0.677088
+Epoc:  530  --->  Loss: 0.675557
+Epoc:  535  --->  Loss: 0.674023
+Epoc:  540  --->  Loss: 0.672485
+Epoc:  545  --->  Loss: 0.670944
+Epoc:  550  --->  Loss: 0.669400
+Epoc:  555  --->  Loss: 0.667852
+Epoc:  560  --->  Loss: 0.666300
+Epoc:  565  --->  Loss: 0.664744
+Epoc:  570  --->  Loss: 0.663185
+Epoc:  575  --->  Loss: 0.661621
+Epoc:  580  --->  Loss: 0.660053
+Epoc:  585  --->  Loss: 0.658481
+Epoc:  590  --->  Loss: 0.656905
+Epoc:  595  --->  Loss: 0.655324
+Epoc:  600  --->  Loss: 0.653739
+Epoc:  605  --->  Loss: 0.652150
+Epoc:  610  --->  Loss: 0.650556
+Epoc:  615  --->  Loss: 0.648957
+Epoc:  620  --->  Loss: 0.647354
+Epoc:  625  --->  Loss: 0.645746
+Epoc:  630  --->  Loss: 0.644133
+Epoc:  635  --->  Loss: 0.642516
+Epoc:  640  --->  Loss: 0.640893
+Epoc:  645  --->  Loss: 0.639266
+Epoc:  650  --->  Loss: 0.637634
+Epoc:  655  --->  Loss: 0.635997
+Epoc:  660  --->  Loss: 0.634355
+Epoc:  665  --->  Loss: 0.632708
+Epoc:  670  --->  Loss: 0.631056
+Epoc:  675  --->  Loss: 0.629399
+Epoc:  680  --->  Loss: 0.627737
+Epoc:  685  --->  Loss: 0.626070
+Epoc:  690  --->  Loss: 0.624397
+Epoc:  695  --->  Loss: 0.622720
+Epoc:  700  --->  Loss: 0.621037
+Epoc:  705  --->  Loss: 0.619349
+Epoc:  710  --->  Loss: 0.617656
+Epoc:  715  --->  Loss: 0.615958
+Epoc:  720  --->  Loss: 0.614255
+Epoc:  725  --->  Loss: 0.612546
+Epoc:  730  --->  Loss: 0.610832
+Epoc:  735  --->  Loss: 0.609113
+Epoc:  740  --->  Loss: 0.607389
+Epoc:  745  --->  Loss: 0.605660
+Epoc:  750  --->  Loss: 0.603925
+Epoc:  755  --->  Loss: 0.602185
+Epoc:  760  --->  Loss: 0.600440
+Epoc:  765  --->  Loss: 0.598690
+Epoc:  770  --->  Loss: 0.596935
+Epoc:  775  --->  Loss: 0.595174
+Epoc:  780  --->  Loss: 0.593409
+Epoc:  785  --->  Loss: 0.591638
+Epoc:  790  --->  Loss: 0.589862
+Epoc:  795  --->  Loss: 0.588081
+Epoc:  800  --->  Loss: 0.586295
+Epoc:  805  --->  Loss: 0.584504
+Epoc:  810  --->  Loss: 0.582708
+Epoc:  815  --->  Loss: 0.580906
+Epoc:  820  --->  Loss: 0.579100
+Epoc:  825  --->  Loss: 0.577289
+Epoc:  830  --->  Loss: 0.575473
+Epoc:  835  --->  Loss: 0.573651
+Epoc:  840  --->  Loss: 0.571825
+Epoc:  845  --->  Loss: 0.569994
+Epoc:  850  --->  Loss: 0.568158
+Epoc:  855  --->  Loss: 0.566318
+Epoc:  860  --->  Loss: 0.564472
+Epoc:  865  --->  Loss: 0.562622
+Epoc:  870  --->  Loss: 0.560767
+Epoc:  875  --->  Loss: 0.558907
+Epoc:  880  --->  Loss: 0.557043
+Epoc:  885  --->  Loss: 0.555174
+Epoc:  890  --->  Loss: 0.553300
+Epoc:  895  --->  Loss: 0.551422
+Epoc:  900  --->  Loss: 0.549540
+Epoc:  905  --->  Loss: 0.547653
+Epoc:  910  --->  Loss: 0.545761
+Epoc:  915  --->  Loss: 0.543865
+Epoc:  920  --->  Loss: 0.541964
+Epoc:  925  --->  Loss: 0.540060
+Epoc:  930  --->  Loss: 0.538151
+Epoc:  935  --->  Loss: 0.536237
+Epoc:  940  --->  Loss: 0.534320
+Epoc:  945  --->  Loss: 0.532398
+Epoc:  950  --->  Loss: 0.530473
+Epoc:  955  --->  Loss: 0.528543
+Epoc:  960  --->  Loss: 0.526609
+Epoc:  965  --->  Loss: 0.524672
+Epoc:  970  --->  Loss: 0.522730
+Epoc:  975  --->  Loss: 0.520785
+Epoc:  980  --->  Loss: 0.518835
+Epoc:  985  --->  Loss: 0.516882
+Epoc:  990  --->  Loss: 0.514926
+Epoc:  995  --->  Loss: 0.512965
+Epoc: 1000  --->  Loss: 0.511002
+
+Predictions:
+長野	は	果物作り	に	適した	場所	です	。
+Import	Import	Import	Import	Import	NotImp	NotImp	NotImp
+
+Scores:
+|	| Prec 	| Rec 	| F1 	| Supp 	|
+| Impor	| 1.000	| 0.400	| 0.571	| 5	|
+| SoSo	| 0.000	| 0.000	| 0.000	| 0	|
+| NotIm	| 0.500	| 0.667	| 0.571	| 3	|
+
+| micro	| 0.500	| 0.500	| 0.500	| 8	|
+| macro	| 0.500	| 0.356	| 0.381	| 8	|
+| w-avg	| 0.812	| 0.500	| 0.571	| 8	|
+
+Confusion matrix: 
+|	| Impor	| SoSo	| NotIm	|
+| Impor	| 2	| 0	| 0	|
+| SoSo	| 1	| 0	| 1	|
+| NotIm	| 2	| 0	| 2	|
+

@@ -63,12 +63,12 @@ library:
   - Torch.Util.Chart
   
 executables:
-  test:
-    main:                Main.hs
-    source-dirs:         app/test
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+#  test:
+#    main:                Main.hs
+#    source-dirs:         app/test
+#    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies:
+#      - hasktorch-tools
   regression:
     main:                Main.hs
     source-dirs:         app/regression
@@ -117,9 +117,9 @@ executables:
 #    dependencies:
 #      - hasktorch-tools
 #      - containers >= 0.6
-tests:
-  hasktorch-tools-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
+# tests:
+#   hasktorch-tools-test:
+#    main:                Spec.hs
+#    source-dirs:         test
+#    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
