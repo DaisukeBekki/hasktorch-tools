@@ -47,6 +47,7 @@ dependencies:
 - juman-tools >= 0.1
 - cereal >= 0.5
 - cereal-text >= 0.1
+- dhall >= 1.24
 
 library:
   source-dirs: src
@@ -98,6 +99,12 @@ executables:
   seq-class-train:
     main:                seq-class-train.hs
     source-dirs:         app/seq-lbl
+    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies:
+      - hasktorch-tools
+  dhall-test:
+    main:                dhall_test.hs
+    source-dirs:         app/dhall
     ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies:
       - hasktorch-tools
