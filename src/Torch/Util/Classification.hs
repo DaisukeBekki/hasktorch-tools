@@ -3,14 +3,13 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Torch.Util.Classification (
-  --Enum(..),
   ClassificationCounts,
   ClassificationReport(..),
   showClassificationReport,
   showConfusionMatrix,
   average,
   variance,
-  standartDeviation,
+  stdDev,
   main
   ) where
 
@@ -206,8 +205,8 @@ variance :: (Real a) => [a] -> Double
 variance xs = let avgxs = average xs in
               average $ for xs $ \x -> (realToFrac x - avgxs)^(2::Integer)
 
-standartDeviation :: (Real a) => [a] -> Double
-standartDeviation xs = sqrt $ variance xs
+stdDev :: (Real a) => [a] -> Double
+stdDev xs = sqrt $ variance xs
 
 --test code
 

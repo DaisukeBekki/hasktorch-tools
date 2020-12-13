@@ -11,6 +11,7 @@ import qualified Data.Text.IO as T    --text
 import Data.Serialize (encodeLazy,decodeLazy) --cereal
 import qualified Data.Serialize.Text as T --cereal-text
 import qualified Data.List as L       --base
+import qualified Dhall 
 --hasktorch
 import Torch.Tensor       (Tensor(..),TensorLike(..),toCPU,reshape)
 import Torch.TensorFactories (randnIO')
