@@ -3,17 +3,17 @@ resolver: lts-14.27
 flags: {}
 
 extra-include-dirs:
-  - ../../.local/lib/hasktorch/libtorch/include
-  - ../../.local/lib/hasktorch/libtorch/include/torch/csrc/api/include
-  - ../../.local/lib/hasktorch/mklml/include
+  - ../.local/lib/hasktorch/libtorch/include
+  - ../.local/lib/hasktorch/libtorch/include/torch/csrc/api/include
+  - ../.local/lib/hasktorch/mklml/include
 extra-lib-dirs:
-  - ../../.local/lib/hasktorch/libtorch/lib
-  - ../../.local/lib/hasktorch/mklml/lib
+  - ../.local/lib/hasktorch/libtorch/lib
+  - ../.local/lib/hasktorch/mklml/lib
 extra-deps:
-  - ../../.local/lib/hasktorch/codegen
-  - ../../.local/lib/hasktorch/libtorch-ffi
-  - ../../.local/lib/hasktorch/libtorch-ffi-helper
-  - ../../.local/lib/hasktorch/hasktorch
+  - ../.local/lib/hasktorch/codegen
+  - ../.local/lib/hasktorch/libtorch-ffi
+  - ../.local/lib/hasktorch/libtorch-ffi-helper
+  - ../.local/lib/hasktorch/hasktorch
 #  - template-0.2.0.10@sha256:f822de4d34c45bc84b33a61bc112c15fedee6fa6dc414c62b10456395a868f85
   - inline-c-0.9.0.0   #@sha256:7b5aa24a265cb50fd71f1a2595506f5a7dec98edcf40b7fbe617193668a90f31,3249
   - inline-c-cpp-0.4.0.0
@@ -37,7 +37,7 @@ extra-deps:
 #  - req-3.1.0
   - aeson-1.4.7.1
   - aeson-lens-0.5.0.0
-  - ../jsem
+  - ../JSeM
   - ../juman-tools
   - git: git://github.com/creswick/chatter.git
     commit: a10cb59f5d70fd2a5def35a319ea254a2db3004d
