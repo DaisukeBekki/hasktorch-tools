@@ -19,12 +19,12 @@ packages:
   original:
     hackage: inline-c-cpp-0.4.0.0
 - completed:
-    hackage: regex-tdfa-1.2.3.2@sha256:b154ece2c3a2efe088fb7d3ff76ca9607127b58795755b79f3a6f9376f95e50f,3850
+    hackage: regex-tdfa-1.3.1.0@sha256:bec13812a56a904ff3510caa19fe1b3ce3939e303604b1bcb3162771c52311ba,6324
     pantry-tree:
-      size: 1745
-      sha256: 4759fcd89a97707592f51529e5acea9f9da620e2344dfcf799277995f0ecfaed
+      size: 2566
+      sha256: 0795972b182b375a05fe51aee34ec69dafe799017a49fd2a3e35162dff3f0850
   original:
-    hackage: regex-tdfa-1.2.3.2
+    hackage: regex-tdfa-1.3.1.0
 - completed:
     hackage: ghc-typelits-natnormalise-0.7@sha256:227ea92f133f4d2754e7c2a559a29450df4f1c354698a9614d4578cf979737d0,3415
     pantry-tree:
@@ -119,18 +119,18 @@ packages:
     git: git://github.com/creswick/chatter.git
     pantry-tree:
       size: 18052
-      sha256: 4bbe690b9be826b62da047980079aef7a557138eacceae832909f05c7fea3a7a
-    commit: a10cb59f5d70fd2a5def35a319ea254a2db3004d
+      sha256: 5384043c3c10cc4d9cf382d5eb670f6df33d60dad05fd7dbbd35c6f749fa66d9
+    commit: 07befaf1da42d65de399ef96311566ce7cbc223a
   original:
     git: git://github.com/creswick/chatter.git
-    commit: a10cb59f5d70fd2a5def35a319ea254a2db3004d
+    commit: 07befaf1da42d65de399ef96311566ce7cbc223a
 - completed:
-    hackage: cereal-0.5.7.0@sha256:42d001b5f9871613e4ddf978d05d1ca7501514bcd437223320db8e9a01add154,2784
+    hackage: cereal-0.5.8.1@sha256:37cb7a78c84412e94592a658768320c41f015f2b8707a433de835afb8ebc18d7,2767
     pantry-tree:
       size: 641
-      sha256: 1630b8a69da99369caee09991ea5986959ca50edeb5943bc8eb752515676f2cf
+      sha256: 65ec816e5c39253f0060b8b1019450f5c6fa1e0c06c1c7b4a36f09e186a607fd
   original:
-    hackage: cereal-0.5.7.0
+    hackage: cereal-0.5.8.1
 - completed:
     hackage: fullstop-0.1.4@sha256:80a3e382ef53551bb936e7da8b2825621df0ea169af1212debcb0a90010b30c8,2044
     pantry-tree:
@@ -146,15 +146,15 @@ packages:
   original:
     hackage: tokenize-0.3.0
 - completed:
-    hackage: regex-base-0.93.2@sha256:6d4307e6732c9b3c01fa6b7c6e2c2e578dc844804b9de73dc55832de4b1d7a36,2035
+    hackage: regex-base-0.94.0.0@sha256:44aa95ca762294ffbb28cf0af9c567d93b5d2c56e4f38ce5385a257d899f968e,2253
     pantry-tree:
-      size: 414
-      sha256: 2a73603e5b1111aee45fa05b24aca7d7df7f0f1a277115969f04b5e5ed7efb41
+      size: 483
+      sha256: 627ad9d564650590654720934224090a4e8fc3225e84a7fd1af83bc86b2d446a
   original:
-    hackage: regex-base-0.93.2
+    hackage: regex-base-0.94.0.0
 snapshots:
 - completed:
-    size: 524996
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/27.yaml
-    sha256: 7ea31a280c56bf36ff591a7397cc384d0dff622e7f9e4225b47d8980f019a0f0
-  original: lts-14.27
+    size: 491372
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/5.yaml
+    sha256: 1b549cfff328040c382a70a84a2087aac8dab6d778bf92f32a93a771a1980dfc
+  original: lts-15.5
