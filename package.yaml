@@ -47,6 +47,7 @@ dependencies:
 - juman-tools >= 0.1
 - cereal >= 0.5
 - cereal-text >= 0.1
+- dhall
 
 library:
   source-dirs: src
@@ -65,12 +66,12 @@ library:
   - Torch.Util.Chart
   
 executables:
-  test:
-    main:                Main.hs
-    source-dirs:         app/test
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+  # test:
+  #   main:                Main.hs
+  #   source-dirs:         app/test
+  #   ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
+  #   dependencies:
+  #     - hasktorch-tools
   regression:
     main:                Main.hs
     source-dirs:         app/regression

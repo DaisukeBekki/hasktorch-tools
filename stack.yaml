@@ -1,23 +1,25 @@
-resolver: lts-14.27
+resolver: lts-15.5
+
+compiler: ghc-8.8.4
 
 flags: {}
 
 extra-include-dirs:
-  - ../../.local/lib/hasktorch/libtorch/include
-  - ../../.local/lib/hasktorch/libtorch/include/torch/csrc/api/include
-  - ../../.local/lib/hasktorch/mklml/include
+  - ../.local/lib/hasktorch/pytorch/torch/include
+  - ../.local/lib/hasktorch/pytorch/torch/csrc/api/include
+  - ../.local/lib/hasktorch/mklml/include
 extra-lib-dirs:
-  - ../../.local/lib/hasktorch/libtorch/lib
-  - ../../.local/lib/hasktorch/mklml/lib
+  - ../.local/lib/hasktorch/pytorch/torch/lib
+  - ../.local/lib/hasktorch/mklml/lib
 extra-deps:
-  - ../../.local/lib/hasktorch/codegen
-  - ../../.local/lib/hasktorch/libtorch-ffi
-  - ../../.local/lib/hasktorch/libtorch-ffi-helper
-  - ../../.local/lib/hasktorch/hasktorch
+  - ../.local/lib/hasktorch/codegen
+  - ../.local/lib/hasktorch/libtorch-ffi
+  - ../.local/lib/hasktorch/libtorch-ffi-helper
+  - ../.local/lib/hasktorch/hasktorch
 #  - template-0.2.0.10@sha256:f822de4d34c45bc84b33a61bc112c15fedee6fa6dc414c62b10456395a868f85
   - inline-c-0.9.0.0   #@sha256:7b5aa24a265cb50fd71f1a2595506f5a7dec98edcf40b7fbe617193668a90f31,3249
   - inline-c-cpp-0.4.0.0
-  - regex-tdfa-1.2.3.2 #@sha256:bec13812a56a904ff3510caa19fe1b3ce3939e303604b1bcb3162771c52311ba,6324
+  - regex-tdfa-1.3.1.0 #@sha256:bec13812a56a904ff3510caa19fe1b3ce3939e303604b1bcb3162771c52311ba,6324
 #  - regex-base-0.94.0.0@sha256:44aa95ca762294ffbb28cf0af9c567d93b5d2c56e4f38ce5385a257d899f968e,2253
 # hasktorch
   - ghc-typelits-natnormalise-0.7
@@ -37,14 +39,15 @@ extra-deps:
 #  - req-3.1.0
   - aeson-1.4.7.1
   - aeson-lens-0.5.0.0
-  - ../jsem
+  - ../JSeM
   - ../juman-tools
   - git: git://github.com/creswick/chatter.git
-    commit: a10cb59f5d70fd2a5def35a319ea254a2db3004d
-  - cereal-0.5.7.0
+    commit: 07befaf1da42d65de399ef96311566ce7cbc223a
+  - cereal-0.5.8.1
   - fullstop-0.1.4
   - tokenize-0.3.0
-  - regex-base-0.93.2
+  - regex-base-0.94.0.0
+  # - regex-tdfa-text-1.0.0.3@sha256:fb72123627eadf43dd5ca74a2896940d50aac291e61f62177960f0563f7d5c03,1180
 
 build:
   haddock: false
