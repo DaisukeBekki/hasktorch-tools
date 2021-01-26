@@ -1,17 +1,17 @@
 name:                hasktorch-tools
-version:             0.1.0.0
-github:              "githubuser/hasktorch-tools"
-license:             BSD3
-author:              Daisuke Bekki
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+version:             0.1.1.1
+github:              DaisukeBekki/hasktorch-tools
+license:             LGPL
+author:              Daisuke Bekki and BekkiLab
+maintainer:          bekki@is.ocha.ac.jp
+copyright:           Daisuke Bekki and BekkiLab
 synopsis:            Haskell Tools for Deep Learning via PyTorch
 category:            Machine Learining
 ghc-options:         -Wall
 extra-source-files:
 - README.md
 - ChangeLog.md
-description:         https://github.com/githubuser/hasktorch-tools#readme
+description:         https://github.com/DaisukeBekki/hasktorch-tools#readme
 
 dependencies:
 - base >= 4.7 && < 5
@@ -44,7 +44,7 @@ dependencies:
 - containers >= 0.6
 - gnuplot >=0.5.5
 - jsem >= 0.1
-- juman-tools >= 0.1
+- juman-tools >= 0.1.2
 - cereal >= 0.5
 - cereal-text >= 0.1
 - dhall

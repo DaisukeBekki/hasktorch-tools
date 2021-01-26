@@ -116,7 +116,7 @@ main = do
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
 feedForward :: Params -> (T.Text -> [Float]) -> (Tensor -> Tensor) -> [(Dat,Float)] -> (Tensor,Tensor,Tensor)
 feedForward model oneHotFor toDevice dataSet = 
-  let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model) (toDependent $ h0 model)
+  let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
       embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (toDevice $ asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
       y' = squeezeAll . cat (Dim 0) $ map (reshape [1,1] . sigmoid . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
       y  = toDevice $ asTensor $ snd $ unzip $ dataSet

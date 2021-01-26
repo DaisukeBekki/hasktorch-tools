@@ -4,12 +4,14 @@ module Torch.Layer.LSTM (
   LSTMHypParams(..),
   LSTMParams(..),
   lstmLayer,
-  bilstmLayer
+  bilstmLayer,
+  stackedBilstmLayer
   ) where 
 
 import Prelude hiding (tanh) 
 import GHC.Generics       --base
-import Data.List (scanl') --base
+import Data.List (scanl',foldl') --base
+--import GHC.Natural        --base
 --hasktorch
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
@@ -54,11 +56,19 @@ lstmCell LSTMParams{..} (ct,ht) xt =
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
-lstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
-lstmLayer params c0 h0 inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
+lstmLayer :: LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+lstmLayer params (c0,h0) inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
-bilstmLayer :: LSTMParams -> Tensor -> Tensor -> [Tensor] -> [(Tensor,Tensor)]
-bilstmLayer params c0 h0 inputs =
+bilstmLayer :: LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+bilstmLayer params (c0,h0) inputs =
   let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
   reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
 
+stackedBilstmLayer :: Int -> LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+stackedBilstmLayer layerNum params (c0,h0) inputs 
+  | layerNum <= 0 = []
+  | otherwise = let lstms = replicate layerNum $ bilstmLayer params;
+                    firstLayer = (head lstms) (c0,h0) inputs in
+                foldl' (\lstm newLayer -> newLayer (head lstm) (snd $ unzip lstm)) firstLayer (tail lstms) 
+ 
+  
