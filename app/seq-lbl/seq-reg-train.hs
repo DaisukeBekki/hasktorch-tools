@@ -7,7 +7,7 @@ module Main where
 
 import GHC.Generics                   --base
 import qualified Data.Text as T       --text
-import qualified Data.Text.IO as T       --text
+import qualified Data.Text.IO as T    --text
 --hasktorch
 import Torch.Tensor       (Tensor(..),TensorLike(..),toCPU,reshape)
 import Torch.TensorFactories (randnIO')
@@ -18,7 +18,7 @@ import Torch.Optim        (GD(..))
 import Torch.Train        (update,showLoss,saveParams,loadParams) --, loadParams)
 import Torch.Control      (mapAccumM)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
-import Torch.Layer.LSTM   (LSTMHypParams(..),LSTMParams,bilstmLayer)
+import Torch.Layer.LSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
 import Torch.Util.Chart   (drawLearningCurve)
 import Torch.Util.Dict    (oneHotFactory)
 
@@ -60,12 +60,12 @@ testData = [
   ]
 
 data HypParams = HypParams {
-  lstmHypParams :: LSTMHypParams,
+  biLstmHypParams :: BiLstmHypParams,
   wemb_dim :: Int
   } deriving (Eq, Show)
 
 data Params = Params {
-  lstmParams :: LSTMParams,
+  biLstmParams :: BiLstmParams,
   c0 :: Parameter,
   h0 :: Parameter,
   w_emb :: Parameter,
@@ -77,18 +77,19 @@ instance Parameterized Params
 instance Randomizable HypParams Params where
   sample HypParams{..} = do
     Params
-      <$> sample lstmHypParams
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams, wemb_dim])
-      <*> sample (LinearHypParams (stateDim lstmHypParams) 1)
+      <$> sample biLstmHypParams
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams, wemb_dim])
+      <*> sample (LinearHypParams (stateDim' biLstmHypParams) 1)
 
 main :: IO()
 main = do
   let iter = 2000::Int
+      numOfLayers = 2
       lstm_dim = 64
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
-      hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
+      hyperParams = HypParams (BiLstmHypParams numOfLayers lstm_dim) wemb_dim
       learningRate = 5e-2
       graphFileName = "graph-seq-reg.png"
       modelFileName = "seq-reg.model"
@@ -116,9 +117,9 @@ main = do
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
 feedForward :: Params -> (T.Text -> [Float]) -> (Tensor -> Tensor) -> [(Dat,Float)] -> (Tensor,Tensor,Tensor)
 feedForward model oneHotFor toDevice dataSet = 
-  let lstm = bilstmLayer (lstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
+  let bilstm = biLstmLayers (biLstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
       embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (toDevice $ asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
-      y' = squeezeAll . cat (Dim 0) $ map (reshape [1,1] . sigmoid . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
+      y' = squeezeAll . cat (Dim 0) $ map (reshape [1,1] . sigmoid . linearLayer (mlpParams model)) $ fst $ unzip $ bilstm embLayer
       y  = toDevice $ asTensor $ snd $ unzip $ dataSet
   in (y', y, binaryCrossEntropyLoss' y y')
 

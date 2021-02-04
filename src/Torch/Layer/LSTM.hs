@@ -1,50 +1,52 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Torch.Layer.LSTM (
-  LSTMHypParams(..),
-  LSTMParams(..),
+  LstmHypParams(..),
+  LstmParams(..),
   lstmLayer,
-  bilstmLayer,
-  stackedBilstmLayer
+  biLstmLayer,
+  BiLstmHypParams(..),
+  BiLstmParams(..),
+  biLstmLayers
   ) where 
 
 import Prelude hiding (tanh) 
-import GHC.Generics       --base
+import GHC.Generics              --base
 import Data.List (scanl',foldl') --base
---import GHC.Natural        --base
+import Control.Monad (forM)      --base
 --hasktorch
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
-data LSTMHypParams = LSTMHypParams {
+data LstmHypParams = LstmHypParams {
   stateDim :: Int
   } deriving (Eq, Show)
 
-data LSTMParams = LSTMParams {
+data LstmParams = LstmParams {
   forgetGate :: LinearParams,
   inputGate :: LinearParams,
   candidateGate :: LinearParams,
   outputGate :: LinearParams
   } deriving (Show, Generic)
 
-instance Parameterized LSTMParams
+instance Parameterized LstmParams
 
-instance Randomizable LSTMHypParams LSTMParams where
-  sample LSTMHypParams{..} = do
+instance Randomizable LstmHypParams LstmParams where
+  sample LstmHypParams{..} = do
     let x_Dim = stateDim
         h_Dim = stateDim
         c_Dim = stateDim
         xh_Dim = x_Dim + h_Dim
-    LSTMParams
+    LstmParams
       <$> sample (LinearHypParams xh_Dim c_Dim)
       <*> sample (LinearHypParams xh_Dim c_Dim)
       <*> sample (LinearHypParams xh_Dim c_Dim)
       <*> sample (LinearHypParams xh_Dim h_Dim)
 
-lstmCell :: LSTMParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
-lstmCell LSTMParams{..} (ct,ht) xt =
+lstmCell :: LstmParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
+lstmCell LstmParams{..} (ct,ht) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
       ft = sigmoid $ linearLayer forgetGate $ xt_ht
       it = sigmoid $ linearLayer inputGate $ xt_ht
@@ -56,19 +58,34 @@ lstmCell LSTMParams{..} (ct,ht) xt =
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
-lstmLayer :: LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+lstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
 lstmLayer params (c0,h0) inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
-bilstmLayer :: LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
-bilstmLayer params (c0,h0) inputs =
+biLstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+biLstmLayer params (c0,h0) inputs =
   let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
   reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
 
-stackedBilstmLayer :: Int -> LSTMParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
-stackedBilstmLayer layerNum params (c0,h0) inputs 
-  | layerNum <= 0 = []
-  | otherwise = let lstms = replicate layerNum $ bilstmLayer params;
-                    firstLayer = (head lstms) (c0,h0) inputs in
-                foldl' (\lstm newLayer -> newLayer (head lstm) (snd $ unzip lstm)) firstLayer (tail lstms) 
+data BiLstmHypParams = BiLstmHypParams {
+  numOfLayers :: Int,
+  stateDim' :: Int
+  } deriving (Eq, Show)
+
+data BiLstmParams = BiLstmParams {
+  gates :: [LstmParams]
+  } deriving (Show, Generic)
+
+instance Parameterized BiLstmParams
+
+instance Randomizable BiLstmHypParams BiLstmParams where
+  sample BiLstmHypParams{..} = 
+    BiLstmParams <$>
+      forM [1..numOfLayers] (\_ -> sample $ LstmHypParams stateDim')
+
+biLstmLayers :: BiLstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+biLstmLayers BiLstmParams{..} (c0,h0) inputs =
+  let lstms = map biLstmLayer gates;
+      firstLayer = (head lstms) (c0,h0) inputs in
+  foldl' (\lstm newLayer -> newLayer (head lstm) (snd $ unzip lstm)) firstLayer (tail lstms) 
  
   

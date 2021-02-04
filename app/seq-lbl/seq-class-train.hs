@@ -22,7 +22,7 @@ import Torch.Optim        (GD(..))
 import Torch.Train        (update,showLoss,saveParams,loadParams)
 import Torch.Control      (mapAccumM)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
-import Torch.Layer.LSTM   (LSTMHypParams(..),LSTMParams,bilstmLayer,stackedBilstmLayer)
+import Torch.Layer.LSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
 import Torch.Util.Chart   (drawLearningCurve)
 import Torch.Util.Dict    (oneHotFactory)
 import Torch.Util.Classification (showClassificationReport)
@@ -69,12 +69,12 @@ testData = [
   ]
 
 data HypParams = HypParams {
-  lstmHypParams :: LSTMHypParams,
+  biLstmHypParams :: BiLstmHypParams,
   wemb_dim :: Int
   } deriving (Eq, Show)
 
 data Params = Params {
-  lstmParams :: LSTMParams,
+  biLstmParams :: BiLstmParams,
   c0 :: Parameter,
   h0 :: Parameter,
   w_emb :: Parameter,
@@ -86,18 +86,19 @@ instance Parameterized Params
 instance Randomizable HypParams Params where
   sample HypParams{..} = do
     Params
-      <$> sample lstmHypParams
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim lstmHypParams, wemb_dim])
-      <*> sample (LinearHypParams (stateDim lstmHypParams) $ length labels)
+      <$> sample biLstmHypParams
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams, wemb_dim])
+      <*> sample (LinearHypParams (stateDim' biLstmHypParams) $ length labels)
 
 main :: IO()
 main = do
   let iter = 500::Int
       lstm_dim = 64
+      numOfLayers = 2
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
-      hyperParams = HypParams (LSTMHypParams lstm_dim) wemb_dim
+      hyperParams = HypParams (BiLstmHypParams numOfLayers lstm_dim) wemb_dim
       learningRate = 4e-3
       graphFileName = "graph-seq-class.png"
       modelFileName = "seq-class.model"
@@ -128,9 +129,8 @@ main = do
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
 feedForward :: Params -> (T.Text -> [Float]) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
 feedForward model oneHotFor dataSet = 
-  let lstm = stackedBilstmLayer 2 (lstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
+  let bilstm = biLstmLayers (biLstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
       embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
-      y' = cat (Dim 0) $ map (reshape [1,length labels] . logSoftmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ lstm embLayer
+      y' = cat (Dim 0) $ map (reshape [1,length labels] . logSoftmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ bilstm embLayer
       y  = cat (Dim 0) $ map (reshape [1] . asTensor . fromEnum) $ snd $ unzip $ dataSet
   in (y', y, nllLoss' y y')
-
