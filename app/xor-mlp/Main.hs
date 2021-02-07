@@ -29,10 +29,10 @@ main = do
   initModel <- sample $ MLPHypParams device 2 2 1 Sigmoid Sigmoid
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let loss = sumTensors $ for trainingData $ \(input,output) ->
-                 let y = toCPU $ asTensor output
-                     y' = mlpLayer model $ toCPU $ asTensor input
+                 let y = asTensor'' device output
+                     y' = mlpLayer model $ asTensor'' device input
                  in mseLoss y y'
-        lossValue = (asValue loss)::Float
+        lossValue = (asValue $ toCPU loss)::Float
     showLoss 10 epoc lossValue 
     u <- update model opt loss 1e-1
     return (u, lossValue)
