@@ -11,18 +11,19 @@ import qualified Data.Text.IO as T    --text
 import Data.Serialize (encodeLazy,decodeLazy) --cereal
 import qualified Data.Serialize.Text as T --cereal-text
 import qualified Data.List as L       --base
-import qualified Dhall 
+--import qualified Dhall 
 --hasktorch
 import Torch.Tensor       (Tensor(..),TensorLike(..),reshape)
-import Torch.TensorFactories (randnIO')
+import Torch.Device       (Device(..),DeviceType(..))
 import Torch.Functional   (Dim(..),cat,logSoftmax,matmul,nllLoss',argmax,KeepDim(..))
 import Torch.NN           (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd     (IndependentTensor(..),makeIndependent)
 import Torch.Optim        (GD(..))
 import Torch.Train        (update,showLoss,saveParams,loadParams)
 import Torch.Control      (mapAccumM)
+import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
-import Torch.Layer.LSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
+import Torch.Layer.BiLSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
 import Torch.Util.Chart   (drawLearningCurve)
 import Torch.Util.Dict    (oneHotFactory)
 import Torch.Util.Classification (showClassificationReport)
@@ -69,6 +70,7 @@ testData = [
   ]
 
 data HypParams = HypParams {
+  dev :: Device,
   biLstmHypParams :: BiLstmHypParams,
   wemb_dim :: Int
   } deriving (Eq, Show)
@@ -87,24 +89,25 @@ instance Randomizable HypParams Params where
   sample HypParams{..} = do
     Params
       <$> sample biLstmHypParams
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams, wemb_dim])
-      <*> sample (LinearHypParams (stateDim' biLstmHypParams) $ length labels)
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams, wemb_dim])
+      <*> sample (LinearHypParams dev (stateDim biLstmHypParams) $ length labels)
 
 main :: IO()
 main = do
   let iter = 500::Int
+      device = Device CUDA 0
       lstm_dim = 64
       numOfLayers = 2
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
-      hyperParams = HypParams (BiLstmHypParams numOfLayers lstm_dim) wemb_dim
+      hyperParams = HypParams device (BiLstmHypParams device numOfLayers lstm_dim) wemb_dim
       learningRate = 4e-3
       graphFileName = "graph-seq-class.png"
       modelFileName = "seq-class.model"
   initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let (_,_,batchLoss) = feedForward model oneHotFor trainData 
+    let (_,_,batchLoss) = feedForward device model oneHotFor trainData 
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
     u <- update model opt batchLoss learningRate
@@ -114,7 +117,7 @@ main = do
   drawLearningCurve graphFileName "Learning Curve" [("", reverse losses)]
   -- |
   loadedModel <- loadParams hyperParams modelFileName
-  let (y,_, _) = feedForward loadedModel oneHotFor testData
+  let (y,_, _) = feedForward device loadedModel oneHotFor testData
       indices = asValue $ argmax (Dim 1) RemoveDim y
       ans = map (\v -> (toEnum v)::Label) indices
       b = encodeLazy wrds
@@ -127,10 +130,10 @@ main = do
 
 
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
-feedForward :: Params -> (T.Text -> [Float]) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
-feedForward model oneHotFor dataSet = 
+feedForward :: Device -> Params -> (T.Text -> [Float]) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
+feedForward device model oneHotFor dataSet = 
   let bilstm = biLstmLayers (biLstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
-      embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
+      embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor'' device $ oneHotFor w)) $ fst $ unzip $ dataSet
       y' = cat (Dim 0) $ map (reshape [1,length labels] . logSoftmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ bilstm embLayer
-      y  = cat (Dim 0) $ map (reshape [1] . asTensor . fromEnum) $ snd $ unzip $ dataSet
+      y  = cat (Dim 0) $ map (reshape [1] . asTensor'' device . fromEnum) $ snd $ unzip $ dataSet
   in (y', y, nllLoss' y y')

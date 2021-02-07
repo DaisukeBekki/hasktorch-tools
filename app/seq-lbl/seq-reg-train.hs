@@ -9,16 +9,17 @@ import GHC.Generics                   --base
 import qualified Data.Text as T       --text
 import qualified Data.Text.IO as T    --text
 --hasktorch
-import Torch.Tensor       (Tensor(..),TensorLike(..),toCPU,reshape)
-import Torch.TensorFactories (randnIO')
+import Torch.Tensor       (Tensor(..),TensorLike(..),reshape)
 import Torch.Functional   (Dim(..),sigmoid,binaryCrossEntropyLoss',matmul,cat,squeezeAll)
+import Torch.Device       (Device(..),DeviceType(..))
 import Torch.NN           (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd     (IndependentTensor(..),makeIndependent)
 import Torch.Optim        (GD(..))
 import Torch.Train        (update,showLoss,saveParams,loadParams) --, loadParams)
 import Torch.Control      (mapAccumM)
+import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
-import Torch.Layer.LSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
+import Torch.Layer.BiLSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
 import Torch.Util.Chart   (drawLearningCurve)
 import Torch.Util.Dict    (oneHotFactory)
 
@@ -60,6 +61,7 @@ testData = [
   ]
 
 data HypParams = HypParams {
+  dev :: Device,
   biLstmHypParams :: BiLstmHypParams,
   wemb_dim :: Int
   } deriving (Eq, Show)
@@ -78,25 +80,26 @@ instance Randomizable HypParams Params where
   sample HypParams{..} = do
     Params
       <$> sample biLstmHypParams
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams])
-      <*> (makeIndependent =<< randnIO' [stateDim' biLstmHypParams, wemb_dim])
-      <*> sample (LinearHypParams (stateDim' biLstmHypParams) 1)
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams])
+      <*> (makeIndependent =<< randnIO' dev [stateDim biLstmHypParams, wemb_dim])
+      <*> sample (LinearHypParams dev (stateDim biLstmHypParams) 1)
 
 main :: IO()
 main = do
   let iter = 2000::Int
+      device = Device CUDA 0
       numOfLayers = 2
       lstm_dim = 64
       (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
-      hyperParams = HypParams (BiLstmHypParams numOfLayers lstm_dim) wemb_dim
+      hyperParams = HypParams device (BiLstmHypParams device numOfLayers lstm_dim) wemb_dim
       learningRate = 5e-2
       graphFileName = "graph-seq-reg.png"
       modelFileName = "seq-reg.model"
   -- | Training
   initModel <- sample hyperParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
-    let (_,_,batchLoss) = feedForward model oneHotFor toCPU trainData
+    let (_,_,batchLoss) = feedForward device model oneHotFor trainData
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
     u <- update model opt batchLoss learningRate
@@ -105,7 +108,7 @@ main = do
   drawLearningCurve graphFileName "Learning Curve" [("", reverse losses)]
   -- | Test
   loadedModel <- loadParams hyperParams modelFileName
-  let (y,_,_) = feedForward loadedModel oneHotFor toCPU testData
+  let (y,_,_) = feedForward device loadedModel oneHotFor testData
   putStrLn "\nPredictions:"
   --T.putStrLn $ T.intercalate "\t" $ fst $ unzip $ testData 
   --T.putStrLn $ T.concat $ map float2color $ ((asValue y)::[Float])
@@ -115,12 +118,12 @@ main = do
 
   
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
-feedForward :: Params -> (T.Text -> [Float]) -> (Tensor -> Tensor) -> [(Dat,Float)] -> (Tensor,Tensor,Tensor)
-feedForward model oneHotFor toDevice dataSet = 
+feedForward :: Device -> Params -> (T.Text -> [Float]) -> [(Dat,Float)] -> (Tensor,Tensor,Tensor)
+feedForward dev model oneHotFor dataSet = 
   let bilstm = biLstmLayers (biLstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
-      embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (toDevice $ asTensor $ oneHotFor w)) $ fst $ unzip $ dataSet
+      embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor'' dev $ oneHotFor w)) $ fst $ unzip $ dataSet
       y' = squeezeAll . cat (Dim 0) $ map (reshape [1,1] . sigmoid . linearLayer (mlpParams model)) $ fst $ unzip $ bilstm embLayer
-      y  = toDevice $ asTensor $ snd $ unzip $ dataSet
+      y  = asTensor'' dev $ snd $ unzip $ dataSet
   in (y', y, binaryCrossEntropyLoss' y y')
 
 -- | http://techarchforse.blogspot.com/2014/02/css-css-color-table.html

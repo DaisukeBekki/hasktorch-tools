@@ -11,6 +11,7 @@ import Prelude hiding (tanh)
 import GHC.Generics       --base
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (sigmoid,tanh,relu,selu,squeezeAll)
+import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
@@ -24,6 +25,7 @@ decode actname = case actname of
                    Selu -> selu
 
 data MLPHypParams = MLPHypParams {
+  dev :: Device,
   inputDim :: Int,
   hiddenDim :: Int,
   outputDim :: Int,
@@ -44,8 +46,8 @@ instance Parameterized MLPParams
 instance Randomizable MLPHypParams MLPParams where
   sample MLPHypParams{..} = 
     MLPParams
-    <$> sample (LinearHypParams inputDim hiddenDim)
-    <*> sample (LinearHypParams hiddenDim outputDim)
+    <$> sample (LinearHypParams dev inputDim hiddenDim)
+    <*> sample (LinearHypParams dev hiddenDim outputDim)
     <*> return (decode act1)
     <*> return (decode act2)
 

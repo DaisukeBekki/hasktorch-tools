@@ -12,13 +12,15 @@ module Torch.Layer.Linear (
 
 import GHC.Generics          --base
 import Torch.Tensor          (Tensor(..))
-import Torch.TensorFactories (randnIO')
 import Torch.Functional      (matmul,squeezeAll)
+import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd        (IndependentTensor(..),makeIndependent)
-import Torch.Initializers    (kaimingUniform')
+import Torch.Tensor.TensorFactories (randnIO')
+import Torch.Tensor.Initializers    (kaimingUniform')
 
 data LinearHypParams = LinearHypParams {
+  dev :: Device,
   inputDim :: Int,
   outputDim :: Int
   } deriving (Show, Eq)
@@ -32,8 +34,8 @@ instance Parameterized LinearParams -- Generic
 
 instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
-    w <- makeIndependent =<< kaimingUniform' [outputDim, inputDim]
-    b <- makeIndependent =<< randnIO' [outputDim]
+    w <- makeIndependent =<< kaimingUniform' dev [outputDim, inputDim]
+    b <- makeIndependent =<< randnIO' dev [outputDim]
     return $ LinearParams w b
 
 instance Show LinearParams where

@@ -4,23 +4,21 @@ module Torch.Layer.LSTM (
   LstmHypParams(..),
   LstmParams(..),
   lstmLayer,
-  biLstmLayer,
-  BiLstmHypParams(..),
-  BiLstmParams(..),
-  biLstmLayers
+  biLstmLayer
   ) where 
 
 import Prelude hiding (tanh) 
-import GHC.Generics              --base
-import Data.List (scanl',foldl') --base
-import Control.Monad (forM)      --base
+import GHC.Generics       --base
+import Data.List (scanl') --base
 --hasktorch
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
+import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
 data LstmHypParams = LstmHypParams {
+  dev :: Device,
   stateDim :: Int
   } deriving (Eq, Show)
 
@@ -40,10 +38,10 @@ instance Randomizable LstmHypParams LstmParams where
         c_Dim = stateDim
         xh_Dim = x_Dim + h_Dim
     LstmParams
-      <$> sample (LinearHypParams xh_Dim c_Dim)
-      <*> sample (LinearHypParams xh_Dim c_Dim)
-      <*> sample (LinearHypParams xh_Dim c_Dim)
-      <*> sample (LinearHypParams xh_Dim h_Dim)
+      <$> sample (LinearHypParams dev xh_Dim c_Dim)
+      <*> sample (LinearHypParams dev xh_Dim c_Dim)
+      <*> sample (LinearHypParams dev xh_Dim c_Dim)
+      <*> sample (LinearHypParams dev xh_Dim h_Dim)
 
 lstmCell :: LstmParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
 lstmCell LstmParams{..} (ct,ht) xt =
@@ -65,27 +63,3 @@ biLstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
 biLstmLayer params (c0,h0) inputs =
   let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
   reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
-
-data BiLstmHypParams = BiLstmHypParams {
-  numOfLayers :: Int,
-  stateDim' :: Int
-  } deriving (Eq, Show)
-
-data BiLstmParams = BiLstmParams {
-  gates :: [LstmParams]
-  } deriving (Show, Generic)
-
-instance Parameterized BiLstmParams
-
-instance Randomizable BiLstmHypParams BiLstmParams where
-  sample BiLstmHypParams{..} = 
-    BiLstmParams <$>
-      forM [1..numOfLayers] (\_ -> sample $ LstmHypParams stateDim')
-
-biLstmLayers :: BiLstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
-biLstmLayers BiLstmParams{..} (c0,h0) inputs =
-  let lstms = map biLstmLayer gates;
-      firstLayer = (head lstms) (c0,h0) inputs in
-  foldl' (\lstm newLayer -> newLayer (head lstm) (snd $ unzip lstm)) firstLayer (tail lstms) 
- 
-  
