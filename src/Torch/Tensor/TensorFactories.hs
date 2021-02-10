@@ -21,5 +21,5 @@ randIO' dev shape = randIO shape $ withDevice dev defaultOpts
 randnIO' :: Device -> [Int] -> IO Tensor
 randnIO' dev shape = randnIO shape $ withDevice dev defaultOpts
 
-zeros' :: Device -> [Int] -> IO Tensor
+zeros' :: Device -> [Int] -> Tensor
 zeros' dev shape = zeros shape $ withDevice dev defaultOpts
