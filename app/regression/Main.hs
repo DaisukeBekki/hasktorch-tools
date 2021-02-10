@@ -1,12 +1,14 @@
 module Main where
 
 --hasktorch
-import Torch.Tensor (TensorLike(..),toCPU)
+import Torch.Tensor (asValue)
 import Torch.Functional (mseLoss,add)
+import Torch.Device     (Device(..),DeviceType(..))
 import Torch.NN         (sample)
 import Torch.Optim      (GD(..))
 --hasktorch-tools
-import Torch.Train      (update,showLoss,zeroTensor,saveParams) --, loadParams)
+import Torch.Tensor.TensorFactories (asTensor'')
+import Torch.Train      (update,showLoss,zeroTensor,saveParams,loadParams)
 import Torch.Control    (mapAccumM,foldLoop)
 import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
 import Torch.Util.Chart (drawLearningCurve)
@@ -20,11 +22,12 @@ testData = [([3],[7])]
 main :: IO()
 main = do
   let iter = 150::Int
-  initModel <- sample $ LinearHypParams 1 1
+      device = Device CUDA 0
+  initModel <- sample $ LinearHypParams device 1 1
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let batchLoss = foldLoop trainingData zeroTensor $ \(input,output) loss ->
-                      let y' = linearLayer model $ toCPU $ asTensor input
-                          y = toCPU $ asTensor output
+                      let y' = linearLayer model $ asTensor'' device input
+                          y = asTensor'' device output
                       in add loss $ mseLoss y y'
         lossValue = (asValue batchLoss)::Float
     showLoss 5 epoc lossValue
@@ -33,6 +36,6 @@ main = do
   saveParams trainedModel "regression.model"
   --mapM_ (putStr . printf "%2.3f ") $ reverse allLosses
   drawLearningCurve "graph-reg.png" "Learning Curve" [("",reverse losses)]
-  --loadedModel <- loadParams (Lin:@earHypParams 1 1) "regression.moxdel"
-  --print loadedModel
+  loadedModel <- loadParams (LinearHypParams device 1 1) "regression.model"
+  print loadedModel
 
