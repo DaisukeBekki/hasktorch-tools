@@ -1,5 +1,5 @@
 name:                hasktorch-tools
-version:             0.1.1.3
+version:             0.2.0.0
 github:              DaisukeBekki/hasktorch-tools
 license:             LGPL
 author:              Daisuke Bekki and BekkiLab
@@ -76,35 +76,35 @@ executables:
   #   dependencies:
   #     - hasktorch-tools
   regression:
-    main:                Main.hs
-    source-dirs:         app/regression
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+    main:         Main.hs
+    source-dirs:  app/regression
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
   xor-mlp:
-    main:                Main.hs
-    source-dirs:         app/xor-mlp
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+    main:         Main.hs
+    source-dirs:  app/xor-mlp
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
   seq-reg-train:
-    main:                seq-reg-train.hs
-    source-dirs:         app/seq-lbl
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+    main:         seq-reg-train.hs
+    source-dirs:  app/seq-lbl
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
   seq-preprocess:
-    main:                preprocess.hs
-    source-dirs:         app/seq-lbl
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+    main:         preprocess.hs
+    source-dirs:  app/seq-lbl
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
   seq-class-train:
-    main:                seq-class-train.hs
-    source-dirs:         app/seq-lbl
-    ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies:
-      - hasktorch-tools
+    main:         seq-class-train.hs
+    source-dirs:  app/seq-lbl
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
+  gpu-test:
+    main:         Main.hs
+    source-dirs:  app/gpu-test
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
 #  getCovid19data:
 #    main:                Main.hs
 #    source-dirs:         app/covid19
@@ -125,7 +125,7 @@ executables:
 #      - containers >= 0.6
 tests:
   hasktorch-tools-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main:        Spec.hs
+    source-dirs: test
     ghc-options: [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools

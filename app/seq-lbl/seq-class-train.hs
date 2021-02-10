@@ -13,7 +13,7 @@ import qualified Data.Serialize.Text as T --cereal-text
 import qualified Data.List as L       --base
 --import qualified Dhall 
 --hasktorch
-import Torch.Tensor       (Tensor(..),TensorLike(..),reshape)
+import Torch.Tensor       (Tensor(..),asValue,reshape)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.Functional   (Dim(..),cat,logSoftmax,matmul,nllLoss',argmax,KeepDim(..))
 import Torch.NN           (Parameter,Parameterized,Randomizable,sample)
@@ -128,12 +128,11 @@ main = do
   -- |
   T.putStr $ showClassificationReport $ zip (snd $ unzip $ testData) ans
 
-
 -- | returns (ys', ys, batchLoss) i.e. (predictions, groundtruths, batchloss)
 feedForward :: Device -> Params -> (T.Text -> [Float]) -> [(Dat,Label)] -> (Tensor,Tensor,Tensor)
 feedForward device model oneHotFor dataSet = 
   let bilstm = biLstmLayers (biLstmParams model) (toDependent $ c0 model, toDependent $ h0 model)
       embLayer = map (\w -> (toDependent $ w_emb model) `matmul` (asTensor'' device $ oneHotFor w)) $ fst $ unzip $ dataSet
       y' = cat (Dim 0) $ map (reshape [1,length labels] . logSoftmax (Dim 0) . linearLayer (mlpParams model)) $ fst $ unzip $ bilstm embLayer
-      y  = cat (Dim 0) $ map (reshape [1] . asTensor'' device . fromEnum) $ snd $ unzip $ dataSet
+      y  = cat (Dim 0) $ map (reshape [1] . (asTensor'' device) . fromEnum) $ snd $ unzip $ dataSet
   in (y', y, nllLoss' y y')

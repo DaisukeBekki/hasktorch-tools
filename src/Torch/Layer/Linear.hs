@@ -11,7 +11,7 @@ module Torch.Layer.Linear (
   ) where  
 
 import GHC.Generics          --base
-import Torch.Tensor          (Tensor(..))
+import Torch.Tensor          (Tensor(..),toCPU)
 import Torch.Functional      (matmul,squeezeAll)
 import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
@@ -41,9 +41,9 @@ instance Randomizable LinearHypParams LinearParams where
 instance Show LinearParams where
   show LinearParams{..} = 
     "Parameters:\n"
-    ++ (show $ toDependent weight)
+    ++ (show $ toCPU $ toDependent weight)
     ++ "\nBias:\n"
-    ++ (show $ toDependent bias) 
+    ++ (show $ toCPU $ toDependent bias) 
     
 linearLayer :: LinearParams -> Tensor -> Tensor
 linearLayer LinearParams{..} input =

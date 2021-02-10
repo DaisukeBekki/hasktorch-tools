@@ -9,7 +9,7 @@ import GHC.Generics                   --base
 import qualified Data.Text as T       --text
 import qualified Data.Text.IO as T    --text
 --hasktorch
-import Torch.Tensor       (Tensor(..),TensorLike(..),reshape)
+import Torch.Tensor       (Tensor(..),asValue,reshape)
 import Torch.Functional   (Dim(..),sigmoid,binaryCrossEntropyLoss',matmul,cat,squeezeAll)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.NN           (Parameter,Parameterized,Randomizable,sample)
@@ -87,7 +87,7 @@ instance Randomizable HypParams Params where
 
 main :: IO()
 main = do
-  let iter = 2000::Int
+  let iter = 100::Int
       device = Device CUDA 0
       numOfLayers = 2
       lstm_dim = 64

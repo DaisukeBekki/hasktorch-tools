@@ -58,5 +58,5 @@ instance Show MLPParams where
     ++ "\nOutput Layer:\n"
     ++ (show l2)
 
-mlpLayer :: MLPParams -> Tensor -> Tensor 
+mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
 mlpLayer MLPParams{..} = squeezeAll . a2 . linearLayer l2 . a1 . linearLayer l1

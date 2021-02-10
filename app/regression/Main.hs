@@ -1,14 +1,14 @@
 module Main where
 
 --hasktorch
-import Torch.Tensor (TensorLike(..))
+import Torch.Tensor (asValue)
 import Torch.Functional (mseLoss,add)
 import Torch.Device     (Device(..),DeviceType(..))
 import Torch.NN         (sample)
 import Torch.Optim      (GD(..))
 --hasktorch-tools
 import Torch.Tensor.TensorFactories (asTensor'')
-import Torch.Train      (update,showLoss,zeroTensor,saveParams) --, loadParams)
+import Torch.Train      (update,showLoss,zeroTensor,saveParams,loadParams)
 import Torch.Control    (mapAccumM,foldLoop)
 import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
 import Torch.Util.Chart (drawLearningCurve)
@@ -36,6 +36,6 @@ main = do
   saveParams trainedModel "regression.model"
   --mapM_ (putStr . printf "%2.3f ") $ reverse allLosses
   drawLearningCurve "graph-reg.png" "Learning Curve" [("",reverse losses)]
-  --loadedModel <- loadParams (Lin:@earHypParams 1 1) "regression.moxdel"
-  --print loadedModel
+  loadedModel <- loadParams (LinearHypParams device 1 1) "regression.model"
+  print loadedModel
 
