@@ -1,0 +1,363 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 5e0987ff6c0a3428ab39a2e8103f64fb97f4276f98c126c42be44f3436fc882e
+
+name:           hasktorch-tools
+version:        0.2.0.0
+synopsis:       Haskell Tools for Deep Learning via PyTorch
+description:    https://github.com/DaisukeBekki/hasktorch-tools#readme
+category:       Machine Learining
+homepage:       https://github.com/DaisukeBekki/hasktorch-tools#readme
+bug-reports:    https://github.com/DaisukeBekki/hasktorch-tools/issues
+author:         Daisuke Bekki and BekkiLab
+maintainer:     bekki@is.ocha.ac.jp
+copyright:      Daisuke Bekki and BekkiLab
+license:        LGPL
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/DaisukeBekki/hasktorch-tools
+
+library
+  exposed-modules:
+      Torch.Control
+      Torch.Train
+      Torch.Layer.Linear
+      Torch.Layer.MLP
+      Torch.Layer.LSTM
+      Torch.Layer.BiLSTM
+      Torch.Tensor.TensorFactories
+      Torch.Tensor.Initializers
+      Torch.Util.Classification
+      Torch.Util.Dict
+      Torch.Util.Chart
+  other-modules:
+      Torch.Util.TSV
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings MultiParamTypeClasses RecordWildCards
+  ghc-options: -Wall
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable gpu-test
+  main-is: Main.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/gpu-test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable regression
+  main-is: Main.hs
+  other-modules:
+      MainV0
+      MainV1
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/regression
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable seq-class-train
+  main-is: seq-class-train.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/seq-lbl
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable seq-preprocess
+  main-is: preprocess.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/seq-lbl
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable seq-reg-train
+  main-is: seq-reg-train.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/seq-lbl
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+executable xor-mlp
+  main-is: Main.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      app/xor-mlp
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010
+
+test-suite hasktorch-tools-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_hasktorch_tools
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , async
+    , base >=4.7 && <5
+    , bytestring
+    , cereal >=0.5
+    , cereal-text >=0.1
+    , codegen >=0.1
+    , containers >=0.6
+    , dhall
+    , directory >=1.3
+    , filepath >=1.4
+    , finite-typelits
+    , ghc-typelits-extra
+    , ghc-typelits-knownnat
+    , ghc-typelits-natnormalise
+    , gnuplot >=0.5.5
+    , hasktorch >=0.2
+    , hasktorch-tools
+    , jsem >=0.1
+    , juman-tools >=0.1.2
+    , libtorch-ffi >=1.4
+    , mtl
+    , reflection
+    , safe-exceptions
+    , singletons
+    , split >=0.2
+    , stm
+    , text >=1.2
+    , vector
+    , zlib >=0.6
+  default-language: Haskell2010

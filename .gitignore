@@ -1,6 +1,5 @@
 .stack-work/
 workspace.code-workspace
-hasktorch-tools.cabal
 *~
 *.png
 *.model
