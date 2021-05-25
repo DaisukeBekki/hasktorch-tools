@@ -48,11 +48,12 @@ pushWords :: (Ord a) => [a] -> Hist a
 pushWords = L.foldl' f M.empty
   where f hist key = M.insertWith (+) key (1::Int) hist
 
--- | a型のリスト（例：単語列）から、出現数thresholdを超える要素のリストを作り、
--- | a型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
-oneHotFactory :: (Ord a) => Int -> [a] -> (a -> [Float],Int)
+-- | Text型のリスト（例：単語列）から、出現数thresholdを超える要素のリストを作り、
+-- | Text型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
+-- | 未知語はindex0, PADはindex1を返す
+oneHotFactory :: Int -> [T.Text] -> (T.Text -> [Float],Int)
 oneHotFactory threshold wrds =
-  let dic = fst $ unzip $ reverse $ L.sortOn snd $ M.toList $ filterHistByValue (> threshold) $ pushWords wrds
+  let dic = (T.pack "PAD"):(fst $ unzip $ reverse $ L.sortOn snd $ M.toList $ filterHistByValue (> threshold) $ pushWords wrds)
       dim = (length dic) + 1
   in (\wrd -> oneHot dim $ case L.elemIndex wrd dic of
                              Just i  -> i + 1
