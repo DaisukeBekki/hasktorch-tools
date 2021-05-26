@@ -1,11 +1,11 @@
 name:                hasktorch-tools
-version:             0.2.0.0
+version:             0.2.0.1
 github:              DaisukeBekki/hasktorch-tools
 license:             LGPL
 author:              Daisuke Bekki and BekkiLab
 maintainer:          bekki@is.ocha.ac.jp
 copyright:           Daisuke Bekki and BekkiLab
-synopsis:            Haskell Tools for Deep Learning via PyTorch
+synopsis:            Haskell Tools for Deep Learning via libtorch
 category:            Machine Learining
 ghc-options:         -Wall
 extra-source-files:
@@ -83,6 +83,11 @@ executables:
   xor-mlp:
     main:         Main.hs
     source-dirs:  app/xor-mlp
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
+  regression:
+    main:         Main.hs
+    source-dirs:  app/regression
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
   seq-reg-train:

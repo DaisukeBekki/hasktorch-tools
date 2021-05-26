@@ -16,13 +16,13 @@ import Torch.Util.Chart (drawLearningCurve)
 trainingData :: [([Float],Float)]
 trainingData = [([1],2),([2],4),([3],6),([1],2),([3],7)]
 
-testData :: [([Float],[Float])]
-testData = [([3],[7])]
+testData :: [([Float],Float)]
+testData = [([3],7)]
 
 main :: IO()
 main = do
-  let iter = 150::Int
-      device = Device CUDA 0
+  let iter = 500::Int
+      device = Device CPU 0
   initModel <- sample $ LinearHypParams device 1 1
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let batchLoss = foldLoop trainingData zeroTensor $ \(input,output) loss ->
@@ -38,4 +38,13 @@ main = do
   drawLearningCurve "graph-reg.png" "Learning Curve" [("",reverse losses)]
   loadedModel <- loadParams (LinearHypParams device 1 1) "regression.model"
   print loadedModel
-
+  --
+  let output = linearLayer loadedModel $ asTensor'' device $ fst $ head testData
+      y' = (asValue output)::Float
+      y = snd $ head testData
+  putStr "\nPrediction: "
+  putStrLn $ show y'
+  putStr "Ground truth: "
+  putStrLn $ show y
+  putStr "Mse: "
+  putStrLn $ show $ (y' - y) * (y' - y)

@@ -37,9 +37,10 @@ extra-deps:
   - aeson-lens-0.5.0.0
 #  - regex-base-0.93.2
   - git: git@github.com:DaisukeBekki/juman-tools.git
-    commit: 4912fb58d3b45d5f996c7faf277668c294f473ec
+    commit: e4cbac870451b376e8c6bca1189f1a63ffceeb2b
   - git: git@github.com:DaisukeBekki/JSeM.git
-    commit: 7bee7170025d660d2f72e4ef3570954cdb97a059
+    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
+
 
 build:
   haddock: false
