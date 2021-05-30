@@ -20,17 +20,18 @@ import Torch.Layer.MLP    (MLPHypParams(..),ActName(..),mlpLayer)
 import Torch.Util.Chart   (drawLearningCurve)
 
 trainingData :: [([Float],Float)]
-trainingData = take 5 $ cycle [([1,1],0),([1,0],1),([0,1],1),([0,0],0)]
+trainingData = take 10 $ cycle [([1,1],0),([1,0],1),([0,1],1),([0,0],0)]
 
 main :: IO()
 main = do
-  let iter = 100::Int
-      device = Device CUDA 0
-  initModel <- sample $ MLPHypParams device 2 2 1 Sigmoid Sigmoid
+  let iter = 200::Int
+      device = Device CPU 0
+      hypParams = MLPHypParams device 2 2 1 Selu Sigmoid
+  initModel <- sample hypParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let loss = sumTensors $ for trainingData $ \(input,output) ->
                   let y = asTensor'' device output
-                      y' = (mlpLayer model) (asTensor'' device input)
+                      y' = (mlpLayer hypParams model) (asTensor'' device input)
                   in mseLoss y y'
         lossValue = (asValue loss)::Float 
     showLoss 10 epoc lossValue 
@@ -40,7 +41,7 @@ main = do
   forM_ ([[1,1],[1,0],[0,1],[0,0]::[Float]]) $ \input -> do
     putStr $ show $ input
     putStr ": "
-    putStrLn $ show ((mlpLayer trainedModel $ asTensor'' device input))
+    putStrLn $ show ((mlpLayer hypParams trainedModel $ asTensor'' device input))
   print trainedModel
   where for = flip map
 

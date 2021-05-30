@@ -31,14 +31,12 @@ data MLPHypParams = MLPHypParams {
   outputDim :: Int,
   act1 :: ActName,
   act2 :: ActName
-  } 
+  } deriving (Eq, Show)
 
 -- | DeriveGeneric Pragmaが必要
 data MLPParams = MLPParams {
   l1 :: LinearParams,
-  l2 :: LinearParams,
-  a1 :: Tensor -> Tensor,
-  a2 :: Tensor -> Tensor
+  l2 :: LinearParams
   } deriving (Generic)
 
 instance Parameterized MLPParams
@@ -48,15 +46,10 @@ instance Randomizable MLPHypParams MLPParams where
     MLPParams
     <$> sample (LinearHypParams dev inputDim hiddenDim)
     <*> sample (LinearHypParams dev hiddenDim outputDim)
-    <*> return (decode act1)
-    <*> return (decode act2)
 
 instance Show MLPParams where
   show MLPParams{..} =
-    "Input Layer:\n"
-    ++ (show l1)
-    ++ "\nOutput Layer:\n"
-    ++ (show l2)
+    "Input Layer:\n" ++ "\nOutput Layer:\n"
 
-mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
-mlpLayer MLPParams{..} = squeezeAll . a2 . linearLayer l2 . a1 . linearLayer l1
+mlpLayer :: MLPHypParams -> MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
+mlpLayer MLPHypParams{..} MLPParams{..} = squeezeAll . (decode act2) . linearLayer l2 . (decode act1) . linearLayer l1
