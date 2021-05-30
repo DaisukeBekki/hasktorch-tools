@@ -38,16 +38,20 @@ dependencies:
 - zlib >= 0.6
 # hasktorch-tools
 - text >= 1.2
-- split >= 0.2
 - filepath >= 1.4
 - directory >= 1.3
 - containers >= 0.6
+- split >= 0.2
 - gnuplot >=0.5.5
 - jsem >= 0.1
-- juman-tools >= 0.1.2
+- juman-tools >= 0.1.4
 - cereal >= 0.5
 - cereal-text >= 0.1
-- dhall
+- aeson >= 1.0
+- bytestring >= 0.10
+- yaml >= 0.8.3
+- json-stream >= 0.4
+#- dhall
 
 library:
   source-dirs: src
@@ -66,7 +70,11 @@ library:
   - Torch.Tensor.Initializers
   - Torch.Util.Classification
   - Torch.Util.Dict
+  - Torch.Util.Directory
+  - Torch.Util.Experiment
   - Torch.Util.Chart
+  - Torch.Config.JumanLstmConfig
+  - Torch.Config.EngEmbedRegConfig
   
 executables:
   # test:
@@ -105,11 +113,27 @@ executables:
     source-dirs:  app/seq-lbl
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  gpu-test:
+  juman-preprocess:
     main:         Main.hs
-    source-dirs:  app/gpu-test
+    source-dirs:  app/juman-lstm-language-model/preprocessing
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
+  eng-embed-reg:
+    main:         Main.hs
+    source-dirs:  app/eng-embed-reg
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
+
+#  juman-lstm-preprocess:
+#    main:         Main.hs
+#    source-dirs:  app/juman-lstm-language-model/train
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  gpu-test:
+#    main:         Main.hs
+#    source-dirs:  app/gpu-test
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
 #  getCovid19data:
 #    main:                Main.hs
 #    source-dirs:         app/covid19
