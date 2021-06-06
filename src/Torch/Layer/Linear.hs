@@ -17,7 +17,7 @@ import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd        (IndependentTensor(..),makeIndependent)
 import Torch.Tensor.TensorFactories (randnIO')
-import Torch.Tensor.Initializers    (kaimingUniform')
+import Torch.Tensor.Initializers    (xavierUniform')
 
 data LinearHypParams = LinearHypParams {
   dev :: Device,
@@ -34,7 +34,7 @@ instance Parameterized LinearParams -- Generic
 
 instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
-    w <- makeIndependent =<< kaimingUniform' dev [outputDim, inputDim]
+    w <- makeIndependent =<< xavierUniform' dev [outputDim, inputDim]
     b <- makeIndependent =<< randnIO' dev [outputDim]
     return $ LinearParams w b
 
@@ -48,5 +48,4 @@ instance Show LinearParams where
 linearLayer :: LinearParams -> Tensor -> Tensor
 linearLayer LinearParams{..} input =
   squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent bias)
---linearLayer LinearParams{..} = linear (Linear weight bias)
 
