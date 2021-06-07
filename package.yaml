@@ -114,8 +114,8 @@ executables:
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
   juman-preprocess:
-    main:         Main.hs
-    source-dirs:  app/juman-lstm-language-model/preprocessing
+    main:         preprocessing.hs
+    source-dirs:  app/juman-lstm-language-model
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
   eng-embed-reg-train-bow:
