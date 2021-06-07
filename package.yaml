@@ -1,5 +1,5 @@
 name:                hasktorch-tools
-version:             0.2.0.1
+version:             0.2.0.2
 github:              DaisukeBekki/hasktorch-tools
 license:             LGPL
 author:              Daisuke Bekki and BekkiLab
@@ -118,12 +118,21 @@ executables:
     source-dirs:  app/juman-lstm-language-model/preprocessing
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  eng-embed-reg:
-    main:         Main.hs
+  eng-embed-reg-train-bow:
+    main:         train_bow.hs
     source-dirs:  app/eng-embed-reg
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-
+    dependencies: hasktorch-tools >= 0.2.0.2
+  eng-embed-reg-eval-bow:
+    main:         eval_bow.hs
+    source-dirs:  app/eng-embed-reg
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools >= 0.2.0.2
+  eng-embed-reg-train-lstm:
+    main:         train_lstm.hs
+    source-dirs:  app/eng-embed-reg
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools >= 0.2.0.2
 #  juman-lstm-preprocess:
 #    main:         Main.hs
 #    source-dirs:  app/juman-lstm-language-model/train

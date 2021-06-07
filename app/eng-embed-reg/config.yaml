@@ -1,0 +1,3 @@
+wlpdata_dirpath: /home/bekki/dropbox/Public/MyData/COCA
+dic_filepath: /home/bekki/program/hasktorch-tools/app/eng-embed-reg/dic.yaml
+amazonreview_filepath: /home/bekki/program/hasktorch-tools/app/eng-embed-reg/amazon_review_sample.csv
