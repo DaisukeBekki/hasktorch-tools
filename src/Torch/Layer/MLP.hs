@@ -12,18 +12,20 @@ import Control.Monad (forM) --base
 import Data.List (foldl') --base
 import GHC.Generics       --base
 import Torch.Tensor       (Tensor(..))
-import Torch.Functional   (sigmoid,tanh,relu,selu,squeezeAll)
+import Torch.Functional   (sigmoid,tanh,relu,elu',selu,squeezeAll)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
-data ActName = Sigmoid | Tanh | Relu | Selu deriving (Eq,Show)
+data ActName = Id | Sigmoid | Tanh | Relu | Elu | Selu deriving (Eq,Show)
 
 decode :: ActName -> Tensor -> Tensor
 decode actname = case actname of
+                   Id  -> (\x -> x)
                    Sigmoid -> sigmoid
                    Tanh -> tanh
                    Relu -> relu
+                   Elu -> elu'
                    Selu -> selu
 
 data MLPHypParams = MLPHypParams {
@@ -41,7 +43,7 @@ instance Parameterized MLPParams
 
 instance Randomizable MLPHypParams MLPParams where
   sample MLPHypParams{..} = do
-    let layersSpecs = (inputDim,Sigmoid):layerSpecs 
+    let layersSpecs = (inputDim,Id):layerSpecs 
     layers <- forM (toPairwise layersSpecs) $ \((inputDim,_),(outputDim,outputAct)) -> do
           linearLayer <- sample $ LinearHypParams dev inputDim outputDim
           return $ (linearLayer, decode outputAct)
@@ -59,9 +61,11 @@ mlpLayer MLPParams{..} input = squeezeAll $ foldl' (\vec (layerParam, act) -> ac
 
 -- | Example:
 -- | toPairwise [(4,"a"),(5,"b"),(6,"c")] = [((4,"a"),(5,"b")),((5,"b"),(6,"c"))]
-toPairwise :: [a] -> [(a,a)] 
-toPairwise (a : (b : t)) =
-  scanl shift (a, b) t
+toPairwise :: [a] -> [(a,a)]
+toPairwise [] = []
+toPairwise [_] = []
+toPairwise (x : (y : xs)) =
+  scanl shift (x, y) xs
   where
-    shift (a, b) c = (b, c)
+    shift (_, p) q = (p, q)
 
