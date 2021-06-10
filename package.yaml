@@ -1,5 +1,5 @@
 name:                hasktorch-tools
-version:             0.2.0.2
+version:             0.2.0.3
 github:              DaisukeBekki/hasktorch-tools
 license:             LGPL
 author:              Daisuke Bekki and BekkiLab
@@ -73,7 +73,6 @@ library:
   - Torch.Util.Directory
   - Torch.Util.Experiment
   - Torch.Util.Chart
-  - Torch.Config.JumanLstmConfig
   - Torch.Config.EngEmbedRegConfig
   
 executables:
@@ -113,26 +112,21 @@ executables:
     source-dirs:  app/seq-lbl
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  juman-preprocess:
-    main:         Main.hs
-    source-dirs:  app/juman-lstm-language-model/preprocessing
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  eng-embed-reg-train-bow:
+  eng-embed-reg-bow-train:
     main:         train_bow.hs
     source-dirs:  app/eng-embed-reg
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools >= 0.2.0.2
-  eng-embed-reg-eval-bow:
+    dependencies: hasktorch-tools
+  eng-embed-reg-bow-eval:
     main:         eval_bow.hs
     source-dirs:  app/eng-embed-reg
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools >= 0.2.0.2
-  eng-embed-reg-train-lstm:
+    dependencies: hasktorch-tools
+  eng-embed-reg-lstm-train:
     main:         train_lstm.hs
     source-dirs:  app/eng-embed-reg
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools >= 0.2.0.2
+    dependencies: hasktorch-tools
 #  juman-lstm-preprocess:
 #    main:         Main.hs
 #    source-dirs:  app/juman-lstm-language-model/train
