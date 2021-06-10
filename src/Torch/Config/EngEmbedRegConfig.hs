@@ -22,7 +22,6 @@ default(T.Text)
 -- | プログラムに実行環境を指定するyamlファイルを渡す。
 -- | そのyamlファイルの仕様を以下で定義。
 data Config = Config {
-  wlpdata_dirpath ::  FilePath,
   dic_filepath :: FilePath,
   amazonreview_filepath :: FilePath
   } deriving (Show, G.Generic)
