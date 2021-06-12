@@ -78,13 +78,11 @@ sortWords threshold wrds =
 -- | canonizalizeされたOrd要素のリスト（e.g. 単語列）から、
 -- | a型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
 -- | 未知語は第一要素のみ1のベクトルになる仕様。
-oneHotFactory :: (Ord a) => [a] -> (a -> [Float],Int)
+oneHotFactory :: (Ord a, Eq a) => [a] -> (a -> [Float],Int)
 oneHotFactory dic =
-  let dim = (length dic) + 1
-  in (\wrd -> oneHot dim $ case L.elemIndex wrd dic of
-                             Just i  -> i + 1
-                             Nothing -> 0
-     , dim)
+  let hash = M.fromList (zip dic [1..])
+      dim = (M.size hash) + 1
+  in (\wrd -> oneHot dim $ M.findWithDefault 0 wrd hash, dim)
 
 -- | textがhistのi番目の要素で値（頻度）がjなら[(i,j)]を、histに含まれないなら[]を返す。
 fetchIndex :: [(T.Text,Int)] -> T.Text -> [(Int,Int)]

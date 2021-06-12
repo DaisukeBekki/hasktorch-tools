@@ -44,7 +44,7 @@ dependencies:
 - split >= 0.2
 - gnuplot >=0.5.5
 - jsem >= 0.1
-- juman-tools >= 0.1.4
+- juman-tools >= 0.1.5
 - cereal >= 0.5
 - cereal-text >= 0.1
 - aeson >= 1.0
@@ -113,7 +113,7 @@ executables:
     source-dirs:  app/seq-lbl
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  juman-preprocess:
+  juman-lstm-preprocess:
     main:         preprocessing.hs
     source-dirs:  app/juman-lstm-language-model
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]

@@ -20,10 +20,10 @@ default(T.Text)
 
 -- | プログラムに実行環境を指定するyamlファイルを渡す。
 -- | そのyamlファイルの仕様を以下で定義。
-data Config = Config {
-  textdata_dirname ::  FilePath,
-  jumanlog_dirname :: FilePath,
-  dic_filename :: FilePath
+data Config = Config 
+  { textdata_dirname ::  FilePath -- | コーパス（.txtファイル）を置くディレクトリ
+  , jumanlog_dirname :: FilePath  -- | Juman解析後の出力（.jumanファイル）を置くディレクトリ
+  , dic_filename :: FilePath      -- | 辞書ファイル（yamlファイル）
   } deriving (Show, G.Generic)
 
 instance A.FromJSON Config

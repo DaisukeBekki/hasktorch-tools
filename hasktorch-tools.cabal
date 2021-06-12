@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a0524a53b648d65163b975457189ff6300e20b171cc1c57f2c47ee215c7e1035
+-- hash: c5851b9ac5afc126a93a58233b39f2c410741b7eb3fb7e7bf84e0bdac45b4c53
 
 name:           hasktorch-tools
 version:        0.2.0.2
@@ -71,7 +71,7 @@ library
     , hasktorch >=0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -113,7 +113,7 @@ executable eng-embed-reg-eval-bow
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -155,7 +155,7 @@ executable eng-embed-reg-train-bow
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -197,7 +197,7 @@ executable eng-embed-reg-train-lstm
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -239,7 +239,7 @@ executable first-tensor
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -253,12 +253,12 @@ executable first-tensor
     , zlib >=0.6
   default-language: Haskell2010
 
-executable juman-preprocess
-  main-is: Main.hs
+executable juman-lstm-preprocess
+  main-is: preprocessing.hs
   other-modules:
       Paths_hasktorch_tools
   hs-source-dirs:
-      app/juman-lstm-language-model/preprocessing
+      app/juman-lstm-language-model
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       JuicyPixels
@@ -281,7 +281,7 @@ executable juman-preprocess
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -325,7 +325,7 @@ executable regression
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -367,7 +367,7 @@ executable seq-class-train
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -409,7 +409,7 @@ executable seq-preprocess
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -451,7 +451,7 @@ executable seq-reg-train
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -493,7 +493,7 @@ executable xor-mlp
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
@@ -536,7 +536,7 @@ test-suite hasktorch-tools-test
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.4
+    , juman-tools >=0.1.5
     , libtorch-ffi >=1.4
     , mtl
     , reflection
