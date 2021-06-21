@@ -25,7 +25,7 @@ mapAccumM xs zero f = do
                           ) (zero,[]) xs
 
 -- | Variant of mapAccumM, specific to deep learning with batched-data
-trainLoop :: (Monad m) => [i] -> [d] -> (mod,opt) -> (i -> d -> (mod,opt) -> m ((mod,opt),loss)) -> m ((mod,opt), [loss])
+trainLoop :: [Int] -> [dat] -> (mod,opt) -> (Int -> dat -> (mod,opt) -> IO ((mod,opt),loss)) -> IO ((mod,opt), [loss])
 trainLoop epocs dats zero f = do
   foldM (\(prev,lst) (epoc,dat) -> do
                                    bc <- f epoc dat prev

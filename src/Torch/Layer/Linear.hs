@@ -23,7 +23,7 @@ data LinearHypParams = LinearHypParams {
   dev :: Device,
   inputDim :: Int,
   outputDim :: Int
-  } deriving (Show, Eq)
+  } deriving (Eq, Show)
 
 data LinearParams = LinearParams { 
   weight :: Parameter,

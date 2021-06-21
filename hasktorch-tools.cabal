@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c5851b9ac5afc126a93a58233b39f2c410741b7eb3fb7e7bf84e0bdac45b4c53
+-- hash: 333ab69d1bc6584a45bc803ed65546a014b9613bd9f3a817795bd6bc00069e77
 
 name:           hasktorch-tools
 version:        0.2.0.2
@@ -37,6 +37,8 @@ library
       Torch.Layer.BiLSTM
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
+      Torch.LangModel.Juman.Dict
+      Torch.LangModel.Juman.Model
       Torch.Util.Classification
       Torch.Util.Dict
       Torch.Util.Directory
@@ -71,11 +73,12 @@ library
     , hasktorch >=0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -113,11 +116,12 @@ executable eng-embed-reg-eval-bow
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -155,11 +159,12 @@ executable eng-embed-reg-train-bow
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -197,11 +202,12 @@ executable eng-embed-reg-train-lstm
     , hasktorch-tools >=0.2.0.2
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -239,11 +245,12 @@ executable first-tensor
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -281,11 +288,12 @@ executable juman-lstm-preprocess
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -325,11 +333,12 @@ executable regression
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -367,11 +376,12 @@ executable seq-class-train
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -409,11 +419,12 @@ executable seq-preprocess
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -451,11 +462,12 @@ executable seq-reg-train
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -493,11 +505,12 @@ executable xor-mlp
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
@@ -536,11 +549,12 @@ test-suite hasktorch-tools-test
     , hasktorch-tools
     , jsem >=0.1
     , json-stream >=0.4
-    , juman-tools >=0.1.5
+    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
     , reflection
     , safe-exceptions
+    , shelly >=1.6
     , singletons
     , split >=0.2
     , stm
