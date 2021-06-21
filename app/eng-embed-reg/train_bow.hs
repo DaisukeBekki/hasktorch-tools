@@ -41,8 +41,7 @@ main = do
   let debug = True
       device = Device CPU 0 -- | use CPU
   (_,config) <- getConfig -- | Reading config.yaml
-  let --wlpdataDir = wipdata_dirpath config -- | FilePath of a directory of wlp files
-      dicFile = dic_filepath config -- | FilePath of a save file
+  let dicFile = dic_filepath config -- | FilePath of a save file
       amazonreviewFile = amazonreview_filepath config -- | TSV file containing amazon reviews for Fire Tablet
   checkFile amazonreviewFile
   amazonReviewsTSV <- T.readFile amazonreviewFile -- | Reading amazon reviews
