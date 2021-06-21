@@ -77,6 +77,7 @@ library:
   - Torch.Util.Experiment
   - Torch.Util.Chart
   - Torch.Config.EngEmbedRegConfig
+  - Torch.Config.JumanLstmConfig
   
 executables:
   # test:
@@ -115,11 +116,6 @@ executables:
     source-dirs:  app/seq-lbl
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  juman-lstm-preprocess:
-    main:         preprocessing.hs
-    source-dirs:  app/juman-lstm-language-model
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
   eng-embed-reg-bow-train:
     main:         train_bow.hs
     source-dirs:  app/eng-embed-reg
@@ -135,9 +131,14 @@ executables:
     source-dirs:  app/eng-embed-reg
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-#  juman-lstm-preprocess:
-#    main:         Main.hs
-#    source-dirs:  app/juman-lstm-language-model/train
+  juman-lstm-preprocess:
+    main:         preprocessing.hs
+    source-dirs:  app/juman-lstm-language-model
+    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+    dependencies: hasktorch-tools
+#  juman-lstm-train:
+#    main:         train.hs
+#    source-dirs:  app/juman-lstm-language-model
 #    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
 #    dependencies: hasktorch-tools
 #  gpu-test:

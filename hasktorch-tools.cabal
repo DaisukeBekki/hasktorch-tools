@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 333ab69d1bc6584a45bc803ed65546a014b9613bd9f3a817795bd6bc00069e77
+-- hash: d29e8967934d4d1ec4b8245bc7232c4727c345fe4647b2456b8c26a308a9f8fc
 
 name:           hasktorch-tools
 version:        0.2.0.3
@@ -45,6 +45,7 @@ library
       Torch.Util.Experiment
       Torch.Util.Chart
       Torch.Config.EngEmbedRegConfig
+      Torch.Config.JumanLstmConfig
   other-modules:
       Torch.Util.TSV
       Paths_hasktorch_tools
