@@ -107,6 +107,7 @@ packages:
   original:
     hackage: aeson-lens-0.5.0.0
 - completed:
+<<<<<<< HEAD
     name: juman-tools
     version: 0.1.6
     git: git@github.com:DaisukeBekki/juman-tools.git
@@ -117,6 +118,14 @@ packages:
   original:
     git: git@github.com:DaisukeBekki/juman-tools.git
     commit: 68005951bf12d80ade4a94a22892c203c143b911
+=======
+    hackage: json-stream-0.4.2.4@sha256:8b7f17d54a6e1e6311756270f8bcf51e91bab4300945400de66118470dcf51b9,4716
+    pantry-tree:
+      size: 2055
+      sha256: 3ad81d47097db52223576d79ff441f04682358cd3057de4acb604409772641ca
+  original:
+    hackage: json-stream-0.4.2.4
+>>>>>>> origin/master
 - completed:
     name: jsem
     version: 0.1.4

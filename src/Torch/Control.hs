@@ -1,7 +1,9 @@
 module Torch.Control (
   foldLoop,
   foldLoopM,
-  mapAccumM
+  mapAccumM,
+  trainLoop,
+  makeBatch
   ) where
 
 import Control.Monad (foldM)           --base
@@ -21,7 +23,21 @@ mapAccumM xs zero f = do
                           bc <- f x prev
                           return (fst bc, (snd bc):lst)
                           ) (zero,[]) xs
+
+-- | Variant of mapAccumM, specific to deep learning with batched-data
+trainLoop :: [Int] -> [dat] -> (mod,opt) -> (Int -> dat -> (mod,opt) -> IO ((mod,opt),loss)) -> IO ((mod,opt), [loss])
+trainLoop epocs dats zero f = do
+  foldM (\(prev,lst) (epoc,dat) -> do
+                                   bc <- f epoc dat prev
+                                   return (fst bc, (snd bc):lst)
+                                   ) (zero,[]) $ zip epocs dats
+
+makeBatch :: Int -> [a] -> [[a]]
+makeBatch _ [] = []
+makeBatch n lst = case splitAt n lst of
+  (h,t) -> h:(makeBatch n t)
   
+
 {-
 scanLoop :: [a] -> b -> (b -> a -> b) -> [b]
 scanLoop xs zero f = scanl f zero xs

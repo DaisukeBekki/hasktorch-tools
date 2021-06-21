@@ -1,7 +1,8 @@
 module Torch.Util.Dict (
   bit,
-  bits,
   oneHot,
+  bits,
+  sortWords,
   oneHotFactory,
   toList,
   Torch.Util.Dict.lookup,
@@ -14,7 +15,6 @@ module Torch.Util.Dict (
 
 import qualified Data.Char as C         --base
 import qualified System.IO    as IO        --base
---import qualified System.FilePath.Posix as IO --filepath
 import qualified Data.List    as L       --base
 import qualified Data.List.Split as L    --base
 import qualified Data.Text    as T    --text
@@ -22,22 +22,33 @@ import qualified Data.Text.IO as T    --text
 import qualified Data.Map.Strict as M --container
 import qualified Data.Maybe as Maybe  --
 
--- | d次元の{0,1}ベクトルで、n番目のみ1であるものをStringで返す
-bit :: Int -> Int -> [Char]
-bit dim nth = if nth < 0
-                then "1" ++ replicate (dim-1) '0'
-                else replicate nth '0' ++ "1" ++ replicate (dim-nth-1) '0'
+-- | テスト
+main :: IO()
+main = do
+  putStrLn $ show $ oneHot 3 6
+  putStrLn $ show $ oneHot 5 3
+  putStrLn $ bit 3 6
+  putStrLn $ bit 5 3
+  putStrLn $ bits 5 [2,3,7,(-1)]
 
+-- | dim次元の{0,1}ベクトルで、n番目(0≦nth<d-1）のみ1であるものをStringで返す。nth<0もしくはdim≦nthのときはすべて0。
+bit :: Int -> Int -> String
+bit dim nth | nth < 0 || nth >= dim = replicate dim '0'   -- "1" ++ replicate (dim-1) '0'
+            | otherwise = replicate nth '0' ++ "1" ++ replicate (dim-nth-1) '0'
+
+-- | d次元の{0,1}（ただしFloat）ベクトルでn番目のみ1.0である[Float]を返す。
+oneHot :: Int -> Int -> [Float]
+--oneHot dim nth = replicate nth (0::Float) ++ ((1::Float):(replicate (dim-nth-1) (0::Float)))
+oneHot dim nth | nth < 0 || nth >= dim = replicate dim (0::Float)   -- "1" ++ replicate (dim-1) '0'
+               | otherwise = replicate nth (0::Float) ++ [1::Float] ++ replicate (dim-nth-1) (0::Float)
+
+-- | dim時限の{0,1}ベクトルで、nths番目（定義はbitと同じ）がすべて1、残りは0であるものを返す。
 bits :: Int -> [Int] -> [Char]
-bits dim nths = 
+bits dim nths =
   let b = L.foldl' (\acc i -> if i >= dim
                                  then acc
                                  else acc ++ replicate (i - (length acc)) 0 ++ [1]) [] $ L.sort nths in
   map C.intToDigit $ b ++ replicate (dim - length b) 0
-
--- | d次元の{0,1}（ただしFloat）ベクトルでn番目のみ1.0である[Float]を返す。
-oneHot :: Int -> Int -> [Float]
-oneHot dim nth = replicate nth (0::Float) ++ ((1::Float):(replicate (dim-nth-1) (0::Float)))
 
 -- Histgram
   
@@ -48,18 +59,6 @@ pushWords :: (Ord a) => [a] -> Hist a
 pushWords = L.foldl' f M.empty
   where f hist key = M.insertWith (+) key (1::Int) hist
 
--- | a型のリスト（例：単語列）から、出現数thresholdを超える要素のリストを作り、
--- | a型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
-oneHotFactory :: (Ord a) => Int -> [a] -> (a -> [Float],Int)
-oneHotFactory threshold wrds =
-  let dic = fst $ unzip $ reverse $ L.sortOn snd $ M.toList $ filterHistByValue (> threshold) $ pushWords wrds
-      dim = (length dic) + 1
-  in (\wrd -> oneHot dim $ case L.elemIndex wrd dic of
-                             Just i  -> i + 1
-                             Nothing -> 0
-     , dim)
-  where filterHistByValue = M.filter -- :: (Int -> Bool) -> Hist a -> Hist a 例：M.filter (> 3) map、でvalueが3より大きいエントリのみ残る
-
 -- | ヒストグラムを（語,出現数）のリストに変換
 toList :: (Ord a) => Hist a -> [(a,Int)]
 toList = M.toList
@@ -67,6 +66,23 @@ toList = M.toList
 -- | 語とヒストグラムから出現数を返す（語がヒストグラムに含まれなければNothing）
 lookup :: (Ord a) => a -> Hist a -> Maybe Int
 lookup = M.lookup
+
+-- | a型のリスト（例：単語列）から、出現数thresholdを超える要素のリストを作り、
+-- | 出現数逆順でソートしたa型リストを返す。
+sortWords :: (Ord a) => Int -> [a] -> [a]
+sortWords threshold wrds =
+  fst $ unzip $ reverse $ L.sortOn snd $ M.toList $ filterHistByValue (> threshold) $ pushWords wrds
+  where filterHistByValue = M.filter
+  -- | :: (Int -> Bool) -> Hist a -> Hist a 例：M.filter (> 3) map、でvalueが3より大きいエントリのみ残る
+
+-- | canonizalizeされたOrd要素のリスト（e.g. 単語列）から、
+-- | a型の要素をlookupしてone-hot vector（[Float]型）を返す関数と、そのリストの長さ+1を返す
+-- | 未知語は第一要素のみ1のベクトルになる仕様。
+oneHotFactory :: (Ord a, Eq a) => [a] -> (a -> [Float],Int)
+oneHotFactory dic =
+  let hash = M.fromList (zip dic [1..])
+      dim = (M.size hash) + 1
+  in (\wrd -> oneHot dim $ M.findWithDefault 0 wrd hash, dim)
 
 -- | textがhistのi番目の要素で値（頻度）がjなら[(i,j)]を、histに含まれないなら[]を返す。
 fetchIndex :: [(T.Text,Int)] -> T.Text -> [(Int,Int)]

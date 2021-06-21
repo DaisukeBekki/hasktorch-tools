@@ -25,7 +25,7 @@ import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
 import Torch.Layer.BiLSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
 import Torch.Util.Chart   (drawLearningCurve)
-import Torch.Util.Dict    (oneHotFactory)
+import Torch.Util.Dict    (sortWords,oneHotFactory)
 import Torch.Util.Classification (showClassificationReport)
 
 type Dat = T.Text
@@ -100,7 +100,7 @@ main = do
       device = Device CUDA 0
       lstm_dim = 64
       numOfLayers = 2
-      (oneHotFor,wemb_dim) = oneHotFactory 0 wrds
+      (oneHotFor,wemb_dim) = oneHotFactory (sortWords 0 wrds)
       hyperParams = HypParams device (BiLstmHypParams device numOfLayers lstm_dim) wemb_dim
       learningRate = 4e-3
       graphFileName = "graph-seq-class.png"

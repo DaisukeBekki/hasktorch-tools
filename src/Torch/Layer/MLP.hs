@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, RecordWildCards, MultiParamTypeClasses  #-}
 
 module Torch.Layer.MLP (
   MLPHypParams(..),
@@ -8,55 +8,64 @@ module Torch.Layer.MLP (
   ) where
 
 import Prelude hiding (tanh)
+import Control.Monad (forM) --base
+import Data.List (foldl') --base
 import GHC.Generics       --base
 import Torch.Tensor       (Tensor(..))
-import Torch.Functional   (sigmoid,tanh,relu,selu,squeezeAll)
+import Torch.Functional   (sigmoid,tanh,relu,elu',selu,squeezeAll)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
-data ActName = Sigmoid | Tanh | Relu | Selu deriving (Eq,Show)
+data ActName = Id | Sigmoid | Tanh | Relu | Elu | Selu deriving (Eq,Show)
 
 decode :: ActName -> Tensor -> Tensor
 decode actname = case actname of
+                   Id  -> (\x -> x)
                    Sigmoid -> sigmoid
                    Tanh -> tanh
                    Relu -> relu
+                   Elu -> elu'
                    Selu -> selu
 
 data MLPHypParams = MLPHypParams {
   dev :: Device,
   inputDim :: Int,
-  hiddenDim :: Int,
-  outputDim :: Int,
-  act1 :: ActName,
-  act2 :: ActName
-  } 
+  layerSpecs :: [(Int,ActName)]
+  } deriving (Eq, Show)
 
 -- | DeriveGeneric Pragmaが必要
 data MLPParams = MLPParams {
-  l1 :: LinearParams,
-  l2 :: LinearParams,
-  a1 :: Tensor -> Tensor,
-  a2 :: Tensor -> Tensor
+  layers :: [(LinearParams, Tensor -> Tensor)]
   } deriving (Generic)
 
 instance Parameterized MLPParams
 
 instance Randomizable MLPHypParams MLPParams where
-  sample MLPHypParams{..} = 
-    MLPParams
-    <$> sample (LinearHypParams dev inputDim hiddenDim)
-    <*> sample (LinearHypParams dev hiddenDim outputDim)
-    <*> return (decode act1)
-    <*> return (decode act2)
+  sample MLPHypParams{..} = do
+    let layersSpecs = (inputDim,Id):layerSpecs 
+    layers <- forM (toPairwise layersSpecs) $ \((inputDim,_),(outputDim,outputAct)) -> do
+          linearLayer <- sample $ LinearHypParams dev inputDim outputDim
+          return $ (linearLayer, decode outputAct)
+    return $ MLPParams layers
 
+{-
 instance Show MLPParams where
   show MLPParams{..} =
-    "Input Layer:\n"
-    ++ (show l1)
-    ++ "\nOutput Layer:\n"
-    ++ (show l2)
+    "Input Layer:\n" ++ "\nOutput Layer:\n"
+-}
 
 mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
-mlpLayer MLPParams{..} = squeezeAll . a2 . linearLayer l2 . a1 . linearLayer l1
+mlpLayer MLPParams{..} input = squeezeAll $ foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
+--mlpLayer MLPParams{..} = squeezeAll . a2 . linearLayer l2 . a1 . linearLayer l1
+
+-- | Example:
+-- | toPairwise [(4,"a"),(5,"b"),(6,"c")] = [((4,"a"),(5,"b")),((5,"b"),(6,"c"))]
+toPairwise :: [a] -> [(a,a)]
+toPairwise [] = []
+toPairwise [_] = []
+toPairwise (x : (y : xs)) =
+  scanl shift (x, y) xs
+  where
+    shift (_, p) q = (p, q)
+
