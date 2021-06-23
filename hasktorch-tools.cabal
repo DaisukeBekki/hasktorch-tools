@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0314f27609b3b67fcc2b3c20fd2e1aa17214ff0cda692b2815b5078c63166a4d
+-- hash: 8c66b4a3659a5ccd689605ffc6e4f2b8fa26fc47420d5d7ceaf316d99dbebfda
 
 name:           hasktorch-tools
-version:        0.2.0.3
+version:        0.2.0.4
 synopsis:       Haskell Tools for Deep Learning via libtorch
 description:    https://github.com/DaisukeBekki/hasktorch-tools#readme
 category:       Machine Learining
@@ -300,8 +300,6 @@ executable juman-lstm-preprocess
 executable regression
   main-is: Main.hs
   other-modules:
-      MainV0
-      MainV1
       Paths_hasktorch_tools
   hs-source-dirs:
       app/regression

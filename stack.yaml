@@ -24,7 +24,7 @@ extra-deps:
   - ghc-typelits-knownnat-0.7
   - ghc-typelits-extra-0.3.2
 # examples/typed-transformer
-  - git: git://github.com/hasktorch/pipes-text.git
+  - git: git@github.com:hasktorch/pipes-text.git
     commit: 3dd3d9519306ea06f0c15ad71bdf57e1dfd0b747
 # experimental/dataloader-cifar10
   - datasets-0.4.0 
