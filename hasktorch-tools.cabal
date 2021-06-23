@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d29e8967934d4d1ec4b8245bc7232c4727c345fe4647b2456b8c26a308a9f8fc
+-- hash: 0314f27609b3b67fcc2b3c20fd2e1aa17214ff0cda692b2815b5078c63166a4d
 
 name:           hasktorch-tools
 version:        0.2.0.3
@@ -71,7 +71,6 @@ library
     , ghc-typelits-natnormalise
     , gnuplot >=0.5.5
     , hasktorch >=0.2
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -114,7 +113,6 @@ executable eng-embed-reg-bow-eval
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -157,7 +155,6 @@ executable eng-embed-reg-bow-train
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -200,7 +197,6 @@ executable eng-embed-reg-lstm-train
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -243,7 +239,6 @@ executable first-tensor
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -286,7 +281,6 @@ executable juman-lstm-preprocess
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -331,7 +325,6 @@ executable regression
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -374,7 +367,6 @@ executable seq-class-train
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -417,7 +409,6 @@ executable seq-preprocess
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -460,7 +451,6 @@ executable seq-reg-train
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -503,7 +493,6 @@ executable xor-mlp
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
@@ -547,7 +536,6 @@ test-suite hasktorch-tools-test
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
-    , jsem >=0.1
     , json-stream >=0.4
     , juman-tools >=0.1.6
     , libtorch-ffi >=1.4

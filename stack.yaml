@@ -6,16 +6,18 @@ extra-include-dirs:
   - ../../.local/lib/hasktorch/pytorch/torch/include
   - ../../.local/lib/hasktorch/pytorch/torch/csrc/api/include
   - ../../.local/lib/hasktorch/mklml/include
+
 extra-lib-dirs:
   - ../../.local/lib/hasktorch/pytorch/torch/lib
   - ../../.local/lib/hasktorch/mklml/lib
+
 extra-deps:
   - ../../.local/lib/hasktorch/codegen
   - ../../.local/lib/hasktorch/libtorch-ffi
   - ../../.local/lib/hasktorch/libtorch-ffi-helper
   - ../../.local/lib/hasktorch/hasktorch
-#  - template-0.2.0.10@sha256:f822de4d34c45bc84b33a61bc112c15fedee6fa6dc414c62b10456395a868f85
-  - inline-c-0.9.0.0   #@sha256:7b5aa24a265cb50fd71f1a2595506f5a7dec98edcf40b7fbe617193668a90f31,3249
+#  - template-0.2.0.10
+  - inline-c-0.9.0.0
   - inline-c-cpp-0.4.0.0
 # hasktorch
   - ghc-typelits-natnormalise-0.7
@@ -25,24 +27,18 @@ extra-deps:
   - git: git://github.com/hasktorch/pipes-text.git
     commit: 3dd3d9519306ea06f0c15ad71bdf57e1dfd0b747
 # experimental/dataloader-cifar10
-  - datasets-0.4.0 #@sha256:9bfd5b54c6c5e1e72384a890cf29bf85a02007e0a31c98753f7d225be3c7fa6a,4929
-  - streaming-attoparsec-1.0.0.1 #@sha256:fe9b878072423d3f075534fe8af24722d9ded1a1129e9a6ed5b71c4a29681b39,1146
-  - streaming-cassava-0.1.0.1 #@sha256:2d1dfeb09af62009e88311fe92f44d06dafb5cdd38879b437ea6adb3bc40acfe,1739
+  - datasets-0.4.0 
+  - streaming-attoparsec-1.0.0.1 
+  - streaming-cassava-0.1.0.1 
 # hasktorch-tools
   - Chart-cairo-1.9.1
   - cairo-0.13.8.0
   - gtk2hs-buildtools-0.13.8.0
-#  - req-3.1.0
   - aeson-1.4.7.1
   - aeson-lens-0.5.0.0
   - json-stream-0.4.2.4
-#  - regex-base-0.93.2
-  - ../juman-tools
-#  - git: git@github.com:DaisukeBekki/juman-tools.git
-#    commit: e4cbac870451b376e8c6bca1189f1a63ffceeb2b
-  - git: git@github.com:DaisukeBekki/JSeM.git
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
-
+  - git: git@github.com:DaisukeBekki/juman-tools.git
+    commit: 68005951bf12d80ade4a94a22892c203c143b911
 
 build:
   haddock: false

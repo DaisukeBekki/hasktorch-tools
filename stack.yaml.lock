@@ -113,17 +113,6 @@ packages:
       sha256: 3ad81d47097db52223576d79ff441f04682358cd3057de4acb604409772641ca
   original:
     hackage: json-stream-0.4.2.4
-- completed:
-    name: jsem
-    version: 0.1.4
-    git: git@github.com:DaisukeBekki/JSeM.git
-    pantry-tree:
-      size: 5360
-      sha256: e6ae8d999fd1f0d0e715e779f9cb660bb5d11b5a554d7e9e940f6dee7efa699d
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
-  original:
-    git: git@github.com:DaisukeBekki/JSeM.git
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
 snapshots:
 - completed:
     size: 489011
