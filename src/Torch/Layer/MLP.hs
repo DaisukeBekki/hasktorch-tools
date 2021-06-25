@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric, RecordWildCards, MultiParamTypeClasses  #-}
+{-# LANGUAGE DeriveGeneric, RecordWildCards, MultiParamTypeClasses,FlexibleInstances  #-}
 
 module Torch.Layer.MLP (
   MLPHypParams(..),
@@ -11,13 +11,17 @@ import Prelude hiding (tanh)
 import Control.Monad (forM) --base
 import Data.List (foldl') --base
 import GHC.Generics       --base
+import qualified Data.Aeson as A --aeson
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (sigmoid,tanh,relu,elu',selu,squeezeAll)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
-data ActName = Id | Sigmoid | Tanh | Relu | Elu | Selu deriving (Eq,Show)
+data ActName = Id | Sigmoid | Tanh | Relu | Elu | Selu deriving (Eq,Show,Read,Generic)
+
+instance A.FromJSON ActName
+instance A.ToJSON ActName
 
 decode :: ActName -> Tensor -> Tensor
 decode actname = case actname of
