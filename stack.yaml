@@ -1,35 +1,29 @@
-resolver: lts-15.1
+resolver: lts-17.1
 
 flags: {}
 
 extra-include-dirs:
-  - ../../.local/lib/hasktorch/pytorch/torch/include
-  - ../../.local/lib/hasktorch/pytorch/torch/csrc/api/include
-  - ../../.local/lib/hasktorch/mklml/include
+  - ../../.local/lib/hasktorch/deps/libtorch/include
+  - ../../.local/lib/hasktorch/deps/libtorch/include/torch/csrc/api/include
+  - ../../.local/lib/hasktorch/deps/mklml/include
 
 extra-lib-dirs:
-  - ../../.local/lib/hasktorch/pytorch/torch/lib
-  - ../../.local/lib/hasktorch/mklml/lib
+  - ../../.local/lib/hasktorch/deps/libtorch/lib
+  - ../../.local/lib/hasktorch/deps/mklml/lib
 
 extra-deps:
   - ../../.local/lib/hasktorch/codegen
   - ../../.local/lib/hasktorch/libtorch-ffi
   - ../../.local/lib/hasktorch/libtorch-ffi-helper
   - ../../.local/lib/hasktorch/hasktorch
-#  - template-0.2.0.10
-  - inline-c-0.9.0.0
-  - inline-c-cpp-0.4.0.0
-# hasktorch
-  - ghc-typelits-natnormalise-0.7
-  - ghc-typelits-knownnat-0.7
-  - ghc-typelits-extra-0.3.2
-# examples/typed-transformer
-  - git: git@github.com:hasktorch/pipes-text.git
-    commit: 3dd3d9519306ea06f0c15ad71bdf57e1dfd0b747
-# experimental/dataloader-cifar10
-  - datasets-0.4.0 
-  - streaming-attoparsec-1.0.0.1 
-  - streaming-cassava-0.1.0.1 
+  - datasets-0.4.0@sha256:9bfd5b54c6c5e1e72384a890cf29bf85a02007e0a31c98753f7d225be3c7fa6a,4929
+  - pipes-text-0.0.2.5@sha256:16cfd1927817a1c757b15c37ad95c67e819c28b1c4a6ce9757ab15276ec36ac7,3326
+  - streaming-cassava-0.1.0.1@sha256:2d1dfeb09af62009e88311fe92f44d06dafb5cdd38879b437ea6adb3bc40acfe,1739
+  - streaming-bytestring-0.1.7@sha256:5b53960c1c5f8352d46a4f1a604d04340a08dcf7ff27ca3ed31253e02c01fd03,2968
+  - stm-2.5.0.0@sha256:c238075f9f0711cd6a78eab6001b3e218cdaa745d6377bf83cc21e58ceec2ea1,2100
+  - require-0.4.10@sha256:41b096daaca0d6be49239add1149af9f34c84640d09a7ffa9b45c55f089b5dac,3759
+  - git: https://github.com/mcwitt/tintin
+    commit: cad1ab21e53a3c734e09143def4fe862ded9e67a
 # hasktorch-tools
   - Chart-cairo-1.9.1
   - cairo-0.13.8.0
@@ -40,6 +34,8 @@ extra-deps:
   - git: git@github.com:DaisukeBekki/juman-tools.git
     commit: 68005951bf12d80ade4a94a22892c203c143b911
 
+allow-newer: true
+    
 build:
   haddock: false
   haddock-arguments:

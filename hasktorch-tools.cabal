@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8c66b4a3659a5ccd689605ffc6e4f2b8fa26fc47420d5d7ceaf316d99dbebfda
+-- hash: b99b73ec5c435ddd2726e5b6ec4c278656875be99a995171e328611d26d9a0d8
 
 name:           hasktorch-tools
 version:        0.2.0.4
@@ -300,6 +300,8 @@ executable juman-lstm-preprocess
 executable regression
   main-is: Main.hs
   other-modules:
+      MainV0
+      MainV1
       Paths_hasktorch_tools
   hs-source-dirs:
       app/regression
