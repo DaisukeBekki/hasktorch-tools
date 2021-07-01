@@ -1,5 +1,6 @@
 .stack-work/
 workspace.code-workspace
+stack.yaml.lock
 *~
 *.png
 *.model
