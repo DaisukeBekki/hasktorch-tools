@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b99b73ec5c435ddd2726e5b6ec4c278656875be99a995171e328611d26d9a0d8
+-- hash: 63a390fc898469bef011288163f4ee4870d1ac34235aa2ce9ea2def441c672ba
 
 name:           hasktorch-tools
 version:        0.2.0.4
@@ -51,7 +51,10 @@ library
       Paths_hasktorch_tools
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings MultiParamTypeClasses RecordWildCards
+  default-extensions:
+      OverloadedStrings
+      MultiParamTypeClasses
+      RecordWildCards
   ghc-options: -Wall
   build-depends:
       JuicyPixels
@@ -72,9 +75,9 @@ library
     , gnuplot >=0.5.5
     , hasktorch >=0.2
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -114,9 +117,9 @@ executable eng-embed-reg-bow-eval
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -156,9 +159,9 @@ executable eng-embed-reg-bow-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -198,9 +201,9 @@ executable eng-embed-reg-lstm-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -240,9 +243,9 @@ executable first-tensor
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -282,9 +285,9 @@ executable juman-lstm-preprocess
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -326,9 +329,9 @@ executable regression
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -368,9 +371,9 @@ executable seq-class-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -410,9 +413,9 @@ executable seq-preprocess
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -452,9 +455,9 @@ executable seq-reg-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -494,9 +497,9 @@ executable xor-mlp
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6
@@ -537,9 +540,9 @@ test-suite hasktorch-tools-test
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , juman-tools >=0.1.6
     , libtorch-ffi >=1.4
     , mtl
+    , nlp-tools >=0.1.6
     , reflection
     , safe-exceptions
     , shelly >=1.6

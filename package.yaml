@@ -45,7 +45,7 @@ dependencies:
 - split >= 0.2
 - shelly >= 1.6
 - gnuplot >=0.5.5
-- juman-tools >= 0.1.6
+- nlp-tools >= 0.1.6
 - cereal >= 0.5
 - cereal-text >= 0.1
 - aeson >= 1.0

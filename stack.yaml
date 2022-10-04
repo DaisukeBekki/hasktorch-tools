@@ -31,8 +31,9 @@ extra-deps:
   - aeson-1.4.7.1
   - aeson-lens-0.5.0.0
   - json-stream-0.4.2.4
-  - git: git@github.com:DaisukeBekki/juman-tools.git
-    commit: 68005951bf12d80ade4a94a22892c203c143b911
+  - git: git@github.com:DaisukeBekki/nlp-tools.git
+    commit: 1651f087eeff6f4e10b4ecff67241a708175767d
+
 
 allow-newer: true
     
