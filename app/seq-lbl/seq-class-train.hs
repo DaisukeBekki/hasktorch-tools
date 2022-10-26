@@ -24,9 +24,9 @@ import Torch.Control      (mapAccumM)
 import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
 import Torch.Layer.BiLSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
-import Torch.Util.Chart   (drawLearningCurve)
-import Torch.Util.Dict    (sortWords,oneHotFactory)
-import Torch.Util.Classification (showClassificationReport)
+import ML.Util.Dict    (sortWords,oneHotFactory) --nlp-tools
+import ML.Exp.Chart   (drawLearningCurve) --nlp-tools
+import ML.Exp.Classification (showClassificationReport) --nlp-tools
 
 type Dat = T.Text
 data Label = Important | SoSo | NotImportant deriving (Eq,Show,Enum,Bounded)

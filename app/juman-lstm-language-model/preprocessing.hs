@@ -9,8 +9,8 @@ import qualified Data.Text.IO as T       --text
 import Torch.Tensor (asValue)                    --hasktorch-tools
 import Torch.Device (Device(..),DeviceType(..))  --hasktorch-tools
 import Torch.Tensor.TensorFactories (asTensor'') --hasktorch-tools
-import Torch.Util.Directory (getFileList) --hasktorch-tools
-import Torch.Util.Dict (sortWords, oneHotFactory)--hasktorch-tools
+import ML.Util.Directory (getFileList)        --nlp-tools
+import ML.Util.Dict (sortWords, oneHotFactory)--nlp-tools
 import Torch.LangModel.Juman.Dict (prepareJumanData) --hasktorch-tools
 import Torch.Config.JumanLstmConfig            --hasktorch-tools
 

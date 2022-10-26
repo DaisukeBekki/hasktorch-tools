@@ -11,7 +11,7 @@ import Torch.Tensor.TensorFactories (asTensor'')
 import Torch.Train      (update,showLoss,zeroTensor,saveParams,loadParams)
 import Torch.Control    (mapAccumM,foldLoop)
 import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
-import Torch.Util.Chart (drawLearningCurve)
+import ML.Exp.Chart (drawLearningCurve) --nlp-tools
 
 trainingData :: [([Float],Float)]
 trainingData = [([1],2),([2],4),([3],6),([1],2),([3],7)]

@@ -17,7 +17,7 @@ import Torch.Control      (mapAccumM)
 import Torch.Optim        (GD(..))
 import Torch.Tensor.TensorFactories (asTensor'')
 import Torch.Layer.MLP    (MLPHypParams(..),ActName(..),mlpLayer)
-import Torch.Util.Chart   (drawLearningCurve)
+import ML.Exp.Chart   (drawLearningCurve) --nlp-tools
 
 trainingData :: [([Float],Float)]
 trainingData = take 10 $ cycle [([1,1],0),([1,0],1),([0,1],1),([0,0],0)]

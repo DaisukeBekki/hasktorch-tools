@@ -20,8 +20,8 @@ import Torch.Control      (mapAccumM)
 import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams,linearLayer)
 import Torch.Layer.BiLSTM   (BiLstmHypParams(..),BiLstmParams,biLstmLayers)
-import Torch.Util.Chart   (drawLearningCurve)
-import Torch.Util.Dict    (sortWords,oneHotFactory)
+import ML.Exp.Chart (drawLearningCurve)       --nlp-tools
+import ML.Util.Dict (sortWords,oneHotFactory) --nlp-tools
 
 type Dat = T.Text
 

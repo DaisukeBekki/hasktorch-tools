@@ -31,9 +31,9 @@ import Torch.Control (mapAccumM,trainLoop,makeBatch)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.MLP (MLPHypParams(..),MLPParams(..),ActName(..),mlpLayer)
 import Torch.Layer.LSTM (LstmHypParams(..),LstmParams(..),lstmLayer)
-import Torch.Util.Directory (checkDir,checkFile)
-import Torch.Util.Dict (sortWords, oneHotFactory)
-import Torch.Util.Chart (drawLearningCurve)
+import ML.Util.Directory (checkDir,checkFile)  --nlp-tools
+import ML.Util.Dict (sortWords, oneHotFactory) --nlp-tools
+import ML.Exp.Chart (drawLearningCurve)        --nlp-tools
 import Torch.Config.EngEmbedRegConfig (Config(..),getConfig)
 
 main :: IO ()

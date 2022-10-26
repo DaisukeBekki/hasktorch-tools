@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 63a390fc898469bef011288163f4ee4870d1ac34235aa2ce9ea2def441c672ba
+-- hash: 8a8f3a8bcd3f02e0c9e696df4b5e2f061e010803a7fb25c69e9562d937dd2925
 
 name:           hasktorch-tools
-version:        0.2.0.4
+version:        0.2.0.5
 synopsis:       Haskell Tools for Deep Learning via libtorch
 description:    https://github.com/DaisukeBekki/hasktorch-tools#readme
 category:       Machine Learining
@@ -39,15 +39,9 @@ library
       Torch.Tensor.Initializers
       Torch.LangModel.Juman.Dict
       Torch.LangModel.Juman.Model
-      Torch.Util.Classification
-      Torch.Util.Dict
-      Torch.Util.Directory
-      Torch.Util.Experiment
-      Torch.Util.Chart
       Torch.Config.EngEmbedRegConfig
       Torch.Config.JumanLstmConfig
   other-modules:
-      Torch.Util.TSV
       Paths_hasktorch_tools
   hs-source-dirs:
       src
@@ -65,24 +59,21 @@ library
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -106,25 +97,22 @@ executable eng-embed-reg-bow-eval
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -148,25 +136,22 @@ executable eng-embed-reg-bow-train
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -190,25 +175,22 @@ executable eng-embed-reg-lstm-train
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -232,25 +214,22 @@ executable first-tensor
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -274,25 +253,22 @@ executable juman-lstm-preprocess
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -318,25 +294,22 @@ executable regression
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -360,25 +333,22 @@ executable seq-class-train
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -402,25 +372,22 @@ executable seq-preprocess
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -444,25 +411,22 @@ executable seq-reg-train
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -486,25 +450,22 @@ executable xor-mlp
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector
@@ -529,25 +490,22 @@ test-suite hasktorch-tools-test
     , cereal >=0.5
     , cereal-text >=0.1
     , codegen >=0.1
-    , containers >=0.6
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
     , ghc-typelits-extra
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
-    , gnuplot >=0.5.5
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
     , mtl
-    , nlp-tools >=0.1.6
+    , nlp-tools >=0.1.9
     , reflection
     , safe-exceptions
     , shelly >=1.6
     , singletons
-    , split >=0.2
     , stm
     , text >=1.2
     , vector

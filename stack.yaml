@@ -1,4 +1,5 @@
-resolver: lts-17.1
+#resolver: lts-17.1
+resolver: lts-18.28
 
 flags: {}
 
@@ -32,7 +33,7 @@ extra-deps:
   - aeson-lens-0.5.0.0
   - json-stream-0.4.2.4
   - git: git@github.com:DaisukeBekki/nlp-tools.git
-    commit: 1651f087eeff6f4e10b4ecff67241a708175767d
+    commit: 0b6912850dbffd14ed16c3fa26a0773c877ba093
 
 
 allow-newer: true

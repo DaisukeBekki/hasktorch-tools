@@ -22,9 +22,9 @@ import qualified Shelly as S       --shelly
 import qualified Data.Aeson as A   --aeson
 import qualified Data.ByteString.Char8 as B --bytestring 
 import qualified Data.Yaml             as Y --yaml
-import Text.Juman (JumanData(..),file2jumanLine,jumanParser)     --juman-tools
-import Text.Directory (getFileList,checkFile)   --juman-tools
-import qualified Torch.Util.Dict as D --hasktorch-tools
+import Text.Juman (JumanData(..),file2jumanLine,jumanParser) --nlp-tools
+import ML.Util.Directory (getFileList,checkFile)             --nlp-tools
+import qualified ML.Util.Dict as D                           --nlp-tools
 
 prepareJumanData :: Bool -> [POS] -> Int -> Int -> FilePath -> FilePath -> FilePath -> IO()
 prepareJumanData showStat posses baseFormThreshold posThreshold textdataDir jumanlogDir dicFile = do

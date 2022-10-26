@@ -16,7 +16,7 @@ import qualified System.Directory      as D --directory
 import System.Environment (getArgs)  --base
 import Control.Exception (throw)     --base
 import Control.Monad (when)          --base
-import Torch.Util.Directory (checkFile) --hasktorch-tools
+import ML.Util.Directory (checkFile) --nlp-tools
 default(T.Text)
 
 -- | プログラムに実行環境を指定するyamlファイルを渡す。
