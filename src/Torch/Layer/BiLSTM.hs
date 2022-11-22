@@ -3,18 +3,19 @@
 module Torch.Layer.BiLSTM (
   BiLstmHypParams(..),
   BiLstmParams(..),
+  biLstmLayer,
   biLstmLayers
   ) where
 
 import Prelude hiding (tanh) 
 import GHC.Generics              --base
-import Data.List (foldl') --base
+import Data.List (foldl',scanl') --base
 import Control.Monad (forM)      --base
 --hasktorch
 import Torch.Tensor       (Tensor(..))
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
-import Torch.Layer.LSTM   (LstmHypParams(..),LstmParams(..),biLstmLayer)
+import Torch.Layer.LSTM   (LstmHypParams(..),LstmParams(..),lstmCell)
 
 data BiLstmHypParams = BiLstmHypParams {
   dev :: Device,
@@ -32,6 +33,11 @@ instance Randomizable BiLstmHypParams BiLstmParams where
   sample BiLstmHypParams{..} = 
     BiLstmParams <$>
       forM [1..numOfLayers] (\_ -> sample $ LstmHypParams dev stateDim)
+
+biLstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+biLstmLayer params (c0,h0) inputs =
+  let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
+  reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
 
 biLstmLayers :: BiLstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
 biLstmLayers BiLstmParams{..} (c0,h0) inputs =

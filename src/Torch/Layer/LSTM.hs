@@ -3,8 +3,8 @@
 module Torch.Layer.LSTM (
   LstmHypParams(..),
   LstmParams(..),
-  lstmLayer,
-  biLstmLayer
+  lstmCell,
+  lstmLayer
   ) where 
 
 import Prelude hiding (tanh) 
@@ -59,7 +59,3 @@ lstmCell LstmParams{..} (ct,ht) xt =
 lstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
 lstmLayer params (c0,h0) inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
-biLstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
-biLstmLayer params (c0,h0) inputs =
-  let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
-  reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
