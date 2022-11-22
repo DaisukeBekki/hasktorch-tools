@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8a8f3a8bcd3f02e0c9e696df4b5e2f061e010803a7fb25c69e9562d937dd2925
+-- hash: 84de654afe188e76de29fb4a712bc6d7c69ca7e00549f3d50a58067a28ab9fdd
 
 name:           hasktorch-tools
 version:        0.2.0.5
@@ -33,6 +33,7 @@ library
       Torch.Train
       Torch.Layer.Linear
       Torch.Layer.MLP
+      Torch.Layer.RNN
       Torch.Layer.LSTM
       Torch.Layer.BiLSTM
       Torch.Tensor.TensorFactories
@@ -279,8 +280,6 @@ executable juman-lstm-preprocess
 executable regression
   main-is: Main.hs
   other-modules:
-      MainV0
-      MainV1
       Paths_hasktorch_tools
   hs-source-dirs:
       app/regression
