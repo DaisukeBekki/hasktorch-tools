@@ -48,10 +48,10 @@ lstmCell LstmParams{..} (ct,ht) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
       ft = sigmoid $ linearLayer forgetGate $ xt_ht
       it = sigmoid $ linearLayer inputGate $ xt_ht
-      cant = tanh $ linearLayer candidateGate $ xt_ht
+      cant = tanh' $ linearLayer candidateGate $ xt_ht
       ct' = (ft * ct) + (it * cant)
       ot = sigmoid $ linearLayer outputGate $ xt_ht
-      ht' = ot * (tanh ct')
+      ht' = ot * (tanh' ct')
   in (ct', ht')
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
@@ -59,3 +59,6 @@ lstmCell LstmParams{..} (ct,ht) xt =
 lstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
 lstmLayer params (c0,h0) inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
+-- | HACK : Torch.Functional.tanhとexpが `Segmentation fault`になるため
+tanh' :: Tensor -> Tensor
+tanh' x = 2 * (sigmoid $ 2 * x) - 1
