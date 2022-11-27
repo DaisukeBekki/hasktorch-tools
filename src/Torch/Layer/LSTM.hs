@@ -4,7 +4,8 @@ module Torch.Layer.LSTM (
   LstmHypParams(..),
   LstmParams(..),
   lstmCell,
-  lstmLayer
+  lstmLayer,
+  lstmLayer'
   ) where 
 
 import Prelude hiding (tanh) 
@@ -15,6 +16,7 @@ import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (Dim(..),sigmoid,tanh,cat)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
+import Torch.Tensor.Util (unstack)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
 data LstmHypParams = LstmHypParams {
@@ -56,6 +58,15 @@ lstmCell LstmParams{..} (ct,ht) xt =
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
-lstmLayer :: LstmParams -> (Tensor,Tensor) -> [Tensor] -> [(Tensor,Tensor)]
+lstmLayer :: LstmParams -- ^ hyper params
+  -> (Tensor,Tensor) -- ^ A pair of vectors (c0,h0)
+  -> [Tensor]        -- ^ input layer
+  -> [(Tensor,Tensor)]
 lstmLayer params (c0,h0) inputs = tail $ scanl' (lstmCell params) (c0,h0) inputs
 
+lstmLayer' :: LstmParams -- ^ hyper params
+  -> (Tensor,Tensor) -- ^ A pair of vectors (c0,h0)
+  -> Tensor        -- ^ input layer of the shape (seq_length:embed_dim)
+  -> [(Tensor,Tensor)]
+lstmLayer' params (c0,h0) inputs = 
+  tail $ scanl' (lstmCell params) (c0,h0) (unstack inputs)

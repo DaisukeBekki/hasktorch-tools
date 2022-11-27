@@ -67,6 +67,7 @@ library:
   - Torch.Layer.BiLSTM
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
+  - Torch.Tensor.Util
   - Torch.LangModel.Juman.Dict
   - Torch.LangModel.Juman.Model
   - Torch.Config.EngEmbedRegConfig
