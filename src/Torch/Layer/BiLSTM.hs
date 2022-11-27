@@ -4,7 +4,9 @@ module Torch.Layer.BiLSTM (
   BiLstmHypParams(..),
   BiLstmParams(..),
   biLstmLayer,
-  biLstmLayers
+  biLstmLayer',
+  biLstmLayers,
+  biLstmLayers'
   ) where
 
 import Prelude hiding (tanh) 
@@ -15,6 +17,7 @@ import Control.Monad (forM)      --base
 import Torch.Tensor       (Tensor(..))
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized,Randomizable,sample)
+import Torch.Tensor.Util  (unstack)
 import Torch.Layer.LSTM   (LstmHypParams(..),LstmParams(..),lstmCell)
 
 data BiLstmHypParams = BiLstmHypParams {
