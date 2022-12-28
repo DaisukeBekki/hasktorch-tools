@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 84de654afe188e76de29fb4a712bc6d7c69ca7e00549f3d50a58067a28ab9fdd
+-- hash: b90a10e24b2030d906e5cf1778d07ba9231ed13c5ebe9ff3839c003da48d810f
 
 name:           hasktorch-tools
-version:        0.2.0.5
+version:        0.2.0.6
 synopsis:       Haskell Tools for Deep Learning via libtorch
 description:    https://github.com/DaisukeBekki/hasktorch-tools#readme
 category:       Machine Learining
@@ -38,6 +38,7 @@ library
       Torch.Layer.BiLSTM
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
+      Torch.Tensor.Util
       Torch.LangModel.Juman.Dict
       Torch.LangModel.Juman.Model
       Torch.Config.EngEmbedRegConfig
@@ -69,6 +70,7 @@ library
     , hasktorch >=0.2
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -108,6 +110,7 @@ executable eng-embed-reg-bow-eval
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -147,6 +150,7 @@ executable eng-embed-reg-bow-train
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -186,6 +190,7 @@ executable eng-embed-reg-lstm-train
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -225,6 +230,7 @@ executable first-tensor
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -264,6 +270,7 @@ executable juman-lstm-preprocess
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -303,6 +310,7 @@ executable regression
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -342,6 +350,7 @@ executable seq-class-train
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -381,6 +390,7 @@ executable seq-preprocess
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -420,6 +430,7 @@ executable seq-reg-train
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -459,6 +470,7 @@ executable xor-mlp
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -499,6 +511,7 @@ test-suite hasktorch-tools-test
     , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi >=1.4
+    , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
     , reflection
