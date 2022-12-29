@@ -45,7 +45,10 @@ instance Randomizable LstmHypParams LstmParams where
       <*> sample (LinearHypParams dev xh_Dim c_Dim)
       <*> sample (LinearHypParams dev xh_Dim h_Dim)
 
-lstmCell :: LstmParams -> (Tensor,Tensor) -> Tensor -> (Tensor,Tensor)
+lstmCell :: LstmParams 
+  -> (Tensor,Tensor) -- ^ (c0,h0) 
+  -> Tensor          -- ^ xt
+  -> (Tensor,Tensor) -- ^ (ct,ht)
 lstmCell LstmParams{..} (ct,ht) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
       ft = sigmoid $ linearLayer forgetGate $ xt_ht
