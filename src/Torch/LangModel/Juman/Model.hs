@@ -14,13 +14,12 @@ import qualified Text.Juman as J   --juman-tools
 -- | hasktorch
 import Torch.Tensor (Tensor(..))
 import Torch.Device (Device(..))
-import Torch.NN (Parameterized(..),Randomizable(..),Parameter,sample)
-import Torch.Autograd (IndependentTensor(..),makeIndependent)
+import Torch.NN (Parameterized(..),Randomizable(..),sample)
 -- | hasktorch-tools
-import Torch.Tensor.TensorFactories (asTensor'',randnIO')
+import Torch.Tensor.TensorFactories (asTensor'')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.MLP (MLPHypParams(..),MLPParams(..),ActName(..))
-import Torch.Layer.BiLSTM (BiLstmHypParams(..),BiLstmParams(..),biLstmLayers)
+import Torch.Layer.LSTM (LstmHypParams(..),LstmParams(..),lstmLayers)
 import Torch.LangModel.Juman.Dict (WordInfo,jumanData2Tuples) 
 
 data JLSTMHypParams = JLSTMHypParams {
@@ -32,9 +31,7 @@ data JLSTMHypParams = JLSTMHypParams {
 
 data JLSTMParams = JLSTMParams {
   w_emb :: LinearParams, 
-  c_0 :: Parameter,
-  h_0 :: Parameter,
-  bilstm_params :: BiLstmParams,
+  lstm_params :: LstmParams,
   mlp_params :: MLPParams
   } deriving (G.Generic)
 
@@ -44,9 +41,7 @@ instance Randomizable JLSTMHypParams JLSTMParams where
   sample JLSTMHypParams{..} = 
     JLSTMParams
     <$> sample (LinearHypParams dev dictDim embDim)
-    <*> (makeIndependent =<< randnIO' dev [embDim])
-    <*> (makeIndependent =<< randnIO' dev [embDim])
-    <*> sample (BiLstmHypParams dev 1 embDim)
+    <*> sample (LstmHypParams dev embDim 1)
     <*> sample (MLPHypParams dev (embDim * 2) mlp_layers)
 
 jLSTMlayer :: JLSTMParams
@@ -58,7 +53,7 @@ jLSTMlayer JLSTMParams{..} dev oneHot text = do
   jumanOutput <- J.text2jumanData' text -- [JumanData]
   let wordInfos = jumanData2Tuples jumanOutput
       w_emb_layer = map (\w -> linearLayer w_emb $ asTensor'' dev $ oneHot w) wordInfos
-      output_layer = snd $ unzip $ biLstmLayers bilstm_params (toDependent c_0,toDependent h_0) w_emb_layer
+      output_layer = lstmLayers True lstm_params w_emb_layer
   return $ (output_layer,
             map (\(surfaceForm,_,_) -> surfaceForm) wordInfos)
 

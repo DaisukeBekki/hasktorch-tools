@@ -1,5 +1,5 @@
 name:                hasktorch-tools
-version:             0.2.0.6
+version:             0.2.0.7
 github:              DaisukeBekki/hasktorch-tools
 license:             LGPL
 author:              Daisuke Bekki and BekkiLab
@@ -17,9 +17,9 @@ dependencies:
 # for hasktorch
 - base >= 4.7 && < 5
 - hasktorch >= 0.2
-- libtorch-ffi >= 1.4
+- libtorch-ffi 
 - libtorch-ffi-helper
-- codegen >= 0.1
+- codegen 
 - async
 - finite-typelits
 - ghc-typelits-extra >= 0.3.1
@@ -64,7 +64,6 @@ library:
   - Torch.Layer.MLP
   - Torch.Layer.RNN
   - Torch.Layer.LSTM
-  - Torch.Layer.BiLSTM
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
   - Torch.Tensor.Util

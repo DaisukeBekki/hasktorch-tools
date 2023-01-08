@@ -30,7 +30,7 @@ import Torch.Train (update,showLoss,zeroTensor,saveParams,loadParams,sumTensors)
 import Torch.Control (mapAccumM,trainLoop,makeBatch)
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.MLP (MLPHypParams(..),MLPParams(..),ActName(..),mlpLayer)
-import Torch.Layer.LSTM (LstmHypParams(..),LstmParams(..),lstmLayer)
+import Torch.Layer.LSTM (LstmHypParams(..),LstmParams(..),lstmLayers)
 import ML.Util.Directory (checkDir,checkFile)  --nlp-tools
 import ML.Util.Dict (sortWords, oneHotFactory) --nlp-tools
 import ML.Exp.Chart (drawLearningCurve)        --nlp-tools
@@ -68,7 +68,7 @@ main = do
   initModel <- sample hypParams
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let dists = stack (Dim 0) $ (flip map) trainingData $ \(_,comment) ->
-                  mlpLayer (mlp model) $ snd $ last $ lstmLayer (lstm model) (toDependent $ c_0 model, toDependent $ h_0 model)  $ map (linearLayer (w_emb model) . asTensor'' device . oneHot) $ comment
+                  mlpLayer (mlp model) $ last $ lstmLayers False (lstm model) $ map (linearLayer (w_emb model) . asTensor'' device . oneHot) $ comment
         dist2 = softmax (Dim 1) dists
         loss = nllLoss' ratings (logSoftmax (Dim 1) dists)
         --l2loss = sumTensors $ map (\v -> mseLoss v v) $ map toDependent $ flattenParameters model
@@ -112,8 +112,6 @@ data HypParams = HypParams {
 
 data Params = Params {
   w_emb :: LinearParams, 
-  c_0 :: Parameter,
-  h_0 :: Parameter,
   lstm :: LstmParams,
   mlp :: MLPParams
   } deriving (G.Generic)
@@ -124,9 +122,7 @@ instance Randomizable HypParams Params where
   sample HypParams{..} = 
     Params
     <$> sample (LinearHypParams dev dictDim embDim)
-    <*> (makeIndependent =<< randnIO' dev [stateDim])
-    <*> (makeIndependent =<< randnIO' dev [stateDim])
-    <*> sample (LstmHypParams dev stateDim)
+    <*> sample (LstmHypParams dev stateDim 1)
     <*> sample (MLPHypParams dev stateDim mlp_layers)
 
 {-

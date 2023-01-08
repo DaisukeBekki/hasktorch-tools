@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b90a10e24b2030d906e5cf1778d07ba9231ed13c5ebe9ff3839c003da48d810f
+-- hash: 0681d2d290655334c4d1e6388dfe263fbe176de41cf028b39b755aa2081ab6ba
 
 name:           hasktorch-tools
-version:        0.2.0.6
+version:        0.2.0.7
 synopsis:       Haskell Tools for Deep Learning via libtorch
 description:    https://github.com/DaisukeBekki/hasktorch-tools#readme
 category:       Machine Learining
@@ -35,7 +35,6 @@ library
       Torch.Layer.MLP
       Torch.Layer.RNN
       Torch.Layer.LSTM
-      Torch.Layer.BiLSTM
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
       Torch.Tensor.Util
@@ -60,7 +59,7 @@ library
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -69,7 +68,7 @@ library
     , ghc-typelits-natnormalise
     , hasktorch >=0.2
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -99,7 +98,7 @@ executable eng-embed-reg-bow-eval
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -109,7 +108,7 @@ executable eng-embed-reg-bow-eval
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -139,7 +138,7 @@ executable eng-embed-reg-bow-train
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -149,7 +148,7 @@ executable eng-embed-reg-bow-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -179,7 +178,7 @@ executable eng-embed-reg-lstm-train
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -189,7 +188,7 @@ executable eng-embed-reg-lstm-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -219,7 +218,7 @@ executable first-tensor
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -229,7 +228,7 @@ executable first-tensor
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -259,7 +258,7 @@ executable juman-lstm-preprocess
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -269,7 +268,7 @@ executable juman-lstm-preprocess
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -299,7 +298,7 @@ executable regression
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -309,7 +308,7 @@ executable regression
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -339,7 +338,7 @@ executable seq-class-train
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -349,7 +348,7 @@ executable seq-class-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -379,7 +378,7 @@ executable seq-preprocess
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -389,7 +388,7 @@ executable seq-preprocess
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -419,7 +418,7 @@ executable seq-reg-train
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -429,7 +428,7 @@ executable seq-reg-train
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -459,7 +458,7 @@ executable xor-mlp
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -469,7 +468,7 @@ executable xor-mlp
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
@@ -500,7 +499,7 @@ test-suite hasktorch-tools-test
     , bytestring >=0.10
     , cereal >=0.5
     , cereal-text >=0.1
-    , codegen >=0.1
+    , codegen
     , directory >=1.3
     , filepath >=1.4
     , finite-typelits
@@ -510,7 +509,7 @@ test-suite hasktorch-tools-test
     , hasktorch >=0.2
     , hasktorch-tools
     , json-stream >=0.4
-    , libtorch-ffi >=1.4
+    , libtorch-ffi
     , libtorch-ffi-helper
     , mtl
     , nlp-tools >=0.1.9
