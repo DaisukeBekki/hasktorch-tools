@@ -4,8 +4,8 @@ module Torch.Layer.LSTM (
   LstmHypParams(..),
   LstmParams(..),
   lstmCell,
-  lstmLayers,
-  lstmLayers'
+  lstmLayers
+  --lstmLayers'
   ) where 
 
 import Prelude hiding (tanh) 
@@ -29,8 +29,6 @@ data LstmHypParams = LstmHypParams {
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
-    c0 :: Parameter,
-    h0 :: Parameter,
     forgetGate :: LinearParams,
     inputGate :: LinearParams,
     candidateGate :: LinearParams,
@@ -38,8 +36,9 @@ data SingleLstmParams = SingleLstmParams {
     } deriving (Show, Generic)
 instance Parameterized SingleLstmParams
 
-newtype LstmParams = LstmParams {
-  lstmParams :: [SingleLstmParams]
+data LstmParams = LstmParams {
+  lstmParams :: [SingleLstmParams],
+  initialParams :: [(Parameter,Parameter)]
   } deriving (Show, Generic)
 
 instance Parameterized LstmParams
@@ -52,12 +51,15 @@ instance Randomizable LstmHypParams LstmParams where
     LstmParams
       <$> forM [1..numOfLayers] (\_ ->
         SingleLstmParams 
-          <$> (makeIndependent =<< randnIO' dev [c_Dim])
-          <*> (makeIndependent =<< randnIO' dev [x_Dim])
-          <*> sample (LinearHypParams dev xh_Dim c_Dim)
+          <$> sample (LinearHypParams dev xh_Dim c_Dim)
           <*> sample (LinearHypParams dev xh_Dim c_Dim)
           <*> sample (LinearHypParams dev xh_Dim c_Dim)
           <*> sample (LinearHypParams dev xh_Dim h_Dim)
+          )
+      <*> forM [1..(numOfLayers-1)] (\_ ->
+        (\x y -> (x,y)) -- IO(a)->IO(b->(a,b))
+          <$> (makeIndependent =<< randnIO' dev [c_Dim]) 
+          <*> (makeIndependent =<< randnIO' dev [x_Dim])
           )
 
 lstmCell :: SingleLstmParams 
@@ -80,28 +82,37 @@ lstmCell SingleLstmParams{..} (ct,ht) xt =
 -- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
 lstmLayer :: Bool       -- ^ if BiLSTM then True else False
   -> SingleLstmParams   -- ^ hyper params
-  -- -> (Tensor,Tensor) -- ^ A pair of vectors (c0,h0)
+  -> (Tensor,Tensor)    -- ^ A pair of vectors (c0,h0)
   -> [Tensor]           -- ^ an input layer
   -> [(Tensor,Tensor)]  -- ^ the list of (ci,hi) pairs
-lstmLayer ifBiLstm params inputs = 
-  let firstLayer = tail $ scanl' (lstmCell params) (toDependent $ c0 params, toDependent $ h0 params) inputs in
+lstmLayer ifBiLstm params (c0,h0) inputs = 
+  let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
     if ifBiLstm -- | (c0,h0)は除くためtailを取る
       then reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
       else firstLayer
 
 lstmLayers :: Bool -- ^ if BiLSTM then True else False
   -> LstmParams 
+  -> (Tensor,Tensor) -- ^ A pair of vectors (c0,h0)
   -> [Tensor]  -- ^ an input layer
-  -> [Tensor]　-- ^ the list of ci
-lstmLayers ifBiLstm (LstmParams lstmParams) inputs = 
-  foldl' -- ([xi] -> singlelstm -> [xi]) -> [xi] -> [singlelstm] -> [xi]
-    (\xis nextLayer -> fst $ unzip $ nextLayer xis)
-    inputs
-    (map (lstmLayer ifBiLstm) lstmParams)
+  -> [(Tensor,Tensor)]　-- ^ the list of (ci,hi)
+lstmLayers ifBiLstm LstmParams{..} c0h0 inputs = 
+  let initialTensors = map (\(c,h) -> (toDependent c,toDependent h)) initialParams 
+      (firstParams:restParams) = lstmParams
+      firstLayer = lstmLayer ifBiLstm firstParams c0h0 inputs in
+  -- | ([(ci,hi)] -> ([xi]->[(ci,hi)]) -> [(ci,hi)]) 
+  -- | -> [(ci,hi)] 
+  -- | -> [[xi]->[(ci,hi)]] 
+  -- | -> [(ci,hi)]
+  foldl' (\cihis nextLayer -> nextLayer $ snd $ unzip cihis)
+         firstLayer
+         (map (uncurry $ lstmLayer ifBiLstm) (zip restParams initialTensors))
 
+{-
 lstmLayers' :: Bool -- ^ if BiLSTM then True else False
   -> LstmParams 
   -> Tensor  -- ^ an input Tensor
   -> Tensor　-- ^ the tensor of list of ci
 lstmLayers' ifBiLstm params inputs = 
   stack (Dim 0) $ lstmLayers ifBiLstm params $ unstack inputs
+-}
