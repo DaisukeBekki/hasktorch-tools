@@ -91,19 +91,15 @@ lstmLayer ifBiLstm params (c0,h0) inputs =
       then reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
       else firstLayer
 
-lstmLayers :: Bool -- ^ if BiLSTM then True else False
-  -> LstmParams 
-  -> (Tensor,Tensor) -- ^ A pair of vectors (c0,h0)
-  -> [Tensor]  -- ^ an input layer
-  -> [(Tensor,Tensor)]　-- ^ the list of (ci,hi)
+lstmLayers :: Bool     -- ^ True if BiLSTM, False otherwise
+  -> LstmParams        -- ^ a model
+  -> (Tensor,Tensor)   -- ^ a pair of initial tensors (c0,h0)
+  -> [Tensor]          -- ^ an input layer
+  -> [(Tensor,Tensor)] -- ^ the list of (ci,hi)
 lstmLayers ifBiLstm LstmParams{..} c0h0 inputs = 
   let initialTensors = map (\(c,h) -> (toDependent c,toDependent h)) initialParams 
       (firstParams:restParams) = lstmParams
       firstLayer = lstmLayer ifBiLstm firstParams c0h0 inputs in
-  -- | ([(ci,hi)] -> ([xi]->[(ci,hi)]) -> [(ci,hi)]) 
-  -- | -> [(ci,hi)] 
-  -- | -> [[xi]->[(ci,hi)]] 
-  -- | -> [(ci,hi)]
   foldl' (\cihis nextLayer -> nextLayer $ snd $ unzip cihis)
          firstLayer
          (map (uncurry $ lstmLayer ifBiLstm) (zip restParams initialTensors))
