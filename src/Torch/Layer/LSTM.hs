@@ -66,7 +66,7 @@ lstmCell :: SingleLstmParams
   -> (Tensor,Tensor) -- ^ (ct,ht) 
   -> Tensor          -- ^ xt
   -> (Tensor,Tensor) -- ^ (ct',ht')
-lstmCell SingleLstmParams{..} (ct,ht) xt =
+lstmCell SingleLstmParams{..} (ht,ct) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
       ft = sigmoid $ linearLayer forgetGate $ xt_ht
       it = sigmoid $ linearLayer inputGate $ xt_ht
@@ -74,33 +74,33 @@ lstmCell SingleLstmParams{..} (ct,ht) xt =
       ct' = (ft * ct) + (it * cant)
       ot = sigmoid $ linearLayer outputGate $ xt_ht
       ht' = ot * (tanh' ct')
-  in (ct', ht')
+  in (ht', ct')
   where -- | HACK : Torch.Functional.tanhとexpが `Segmentation fault`になるため
     tanh' x = 2 * (sigmoid $ 2 * x) - 1
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
--- | scanl' :: ((c,h) -> input -> (c',h')) -> (c0,h0) -> [input] -> [(ci,hi)]
+-- | scanl' :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 lstmLayer :: Bool       -- ^ if BiLSTM then True else False
   -> SingleLstmParams   -- ^ hyper params
-  -> (Tensor,Tensor)    -- ^ A pair of vectors (c0,h0)
+  -> (Tensor,Tensor)    -- ^ A pair of vectors (h0,c0)
   -> [Tensor]           -- ^ an input layer
-  -> [(Tensor,Tensor)]  -- ^ the list of (ci,hi) pairs
-lstmLayer ifBiLstm params (c0,h0) inputs = 
-  let firstLayer = tail $ scanl' (lstmCell params) (c0,h0) inputs in
+  -> [(Tensor,Tensor)]  -- ^ the list of (hi,ci) pairs
+lstmLayer ifBiLstm params (h0,c0) inputs = 
+  let firstLayer = tail $ scanl' (lstmCell params) (h0,c0) inputs in
     if ifBiLstm -- | (c0,h0)は除くためtailを取る
       then reverse $ tail $ scanl' (lstmCell params) (last firstLayer) $ reverse $ snd $ unzip firstLayer
       else firstLayer
 
 lstmLayers :: Bool     -- ^ True if BiLSTM, False otherwise
   -> LstmParams        -- ^ a model
-  -> (Tensor,Tensor)   -- ^ a pair of initial tensors (c0,h0)
+  -> (Tensor,Tensor)   -- ^ a pair of initial tensors (h0,c0)
   -> [Tensor]          -- ^ an input layer
-  -> [(Tensor,Tensor)] -- ^ the list of (ci,hi)
-lstmLayers ifBiLstm LstmParams{..} c0h0 inputs = 
-  let initialTensors = map (\(c,h) -> (toDependent c,toDependent h)) initialParams 
+  -> [(Tensor,Tensor)] -- ^ the list of (hi,ci)
+lstmLayers ifBiLstm LstmParams{..} h0c0 inputs = 
+  let initialTensors = map (\(h,c) -> (toDependent h,toDependent c)) initialParams 
       (firstParams:restParams) = lstmParams
-      firstLayer = lstmLayer ifBiLstm firstParams c0h0 inputs in
-  foldl' (\cihis nextLayer -> nextLayer $ snd $ unzip cihis)
+      firstLayer = lstmLayer ifBiLstm firstParams h0c0 inputs in
+  foldl' (\hicis nextLayer -> nextLayer $ snd $ unzip hicis)
          firstLayer
          (map (uncurry $ lstmLayer ifBiLstm) (zip restParams initialTensors))
 
