@@ -64,11 +64,12 @@ library:
   - Torch.Layer.MLP
   - Torch.Layer.RNN
   - Torch.Layer.LSTM
+  - Torch.Layer.SimpleLSTM
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
   - Torch.Tensor.Util
-  - Torch.LangModel.Juman.Dict
-  - Torch.LangModel.Juman.Model
+#  - Torch.LangModel.Juman.Dict
+#  - Torch.LangModel.Juman.Model
   - Torch.Config.EngEmbedRegConfig
   - Torch.Config.JumanLstmConfig
   
@@ -89,46 +90,51 @@ executables:
     source-dirs:  app/xor-mlp
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  regression:
+  lstm:
     main:         Main.hs
-    source-dirs:  app/regression
+    source-dirs:  app/lstm
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  seq-reg-train:
-    main:         seq-reg-train.hs
-    source-dirs:  app/seq-lbl
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  seq-preprocess:
-    main:         preprocess.hs
-    source-dirs:  app/seq-lbl
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  seq-class-train:
-    main:         seq-class-train.hs
-    source-dirs:  app/seq-lbl
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  eng-embed-reg-bow-train:
-    main:         train_bow.hs
-    source-dirs:  app/eng-embed-reg
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  eng-embed-reg-bow-eval:
-    main:         eval_bow.hs
-    source-dirs:  app/eng-embed-reg
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  eng-embed-reg-lstm-train:
-    main:         train_lstm.hs
-    source-dirs:  app/eng-embed-reg
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
-  juman-lstm-preprocess:
-    main:         preprocessing.hs
-    source-dirs:  app/juman-lstm-language-model
-    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
-    dependencies: hasktorch-tools
+#  regression:
+#    main:         Main.hs
+#    source-dirs:  app/regression
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  seq-reg-train:
+#    main:         seq-reg-train.hs
+#    source-dirs:  app/seq-lbl
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  seq-preprocess:
+#    main:         preprocess.hs
+#    source-dirs:  app/seq-lbl
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  seq-class-train:
+#    main:         seq-class-train.hs
+#    source-dirs:  app/seq-lbl
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  eng-embed-reg-bow-train:
+#    main:         train_bow.hs
+#    source-dirs:  app/eng-embed-reg
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  eng-embed-reg-bow-eval:
+#    main:         eval_bow.hs
+#    source-dirs:  app/eng-embed-reg
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  eng-embed-reg-lstm-train:
+#    main:         train_lstm.hs
+#    source-dirs:  app/eng-embed-reg
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
+#  juman-lstm-preprocess:
+#    main:         preprocessing.hs
+#    source-dirs:  app/juman-lstm-language-model
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: hasktorch-tools
 #  juman-lstm-train:
 #    main:         train.hs
 #    source-dirs:  app/juman-lstm-language-model

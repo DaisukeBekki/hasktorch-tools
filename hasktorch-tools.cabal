@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0681d2d290655334c4d1e6388dfe263fbe176de41cf028b39b755aa2081ab6ba
+-- hash: 78ee8f5c0bb2617b7992845a565a3ad251d1bb6425d25115d8eea1e89fc465ca
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -35,11 +35,10 @@ library
       Torch.Layer.MLP
       Torch.Layer.RNN
       Torch.Layer.LSTM
+      Torch.Layer.SimpleLSTM
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
       Torch.Tensor.Util
-      Torch.LangModel.Juman.Dict
-      Torch.LangModel.Juman.Model
       Torch.Config.EngEmbedRegConfig
       Torch.Config.JumanLstmConfig
   other-modules:
@@ -67,126 +66,6 @@ library
     , ghc-typelits-knownnat
     , ghc-typelits-natnormalise
     , hasktorch >=0.2
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable eng-embed-reg-bow-eval
-  main-is: eval_bow.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/eng-embed-reg
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable eng-embed-reg-bow-train
-  main-is: train_bow.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/eng-embed-reg
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable eng-embed-reg-lstm-train
-  main-is: train_lstm.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/eng-embed-reg
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
@@ -243,172 +122,12 @@ executable first-tensor
     , zlib >=0.6
   default-language: Haskell2010
 
-executable juman-lstm-preprocess
-  main-is: preprocessing.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/juman-lstm-language-model
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable regression
+executable lstm
   main-is: Main.hs
   other-modules:
       Paths_hasktorch_tools
   hs-source-dirs:
-      app/regression
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable seq-class-train
-  main-is: seq-class-train.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/seq-lbl
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable seq-preprocess
-  main-is: preprocess.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/seq-lbl
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      JuicyPixels
-    , aeson >=1.0
-    , async
-    , base >=4.7 && <5
-    , bytestring >=0.10
-    , cereal >=0.5
-    , cereal-text >=0.1
-    , codegen
-    , directory >=1.3
-    , filepath >=1.4
-    , finite-typelits
-    , ghc-typelits-extra
-    , ghc-typelits-knownnat
-    , ghc-typelits-natnormalise
-    , hasktorch >=0.2
-    , hasktorch-tools
-    , json-stream >=0.4
-    , libtorch-ffi
-    , libtorch-ffi-helper
-    , mtl
-    , nlp-tools >=0.1.9
-    , reflection
-    , safe-exceptions
-    , shelly >=1.6
-    , singletons
-    , stm
-    , text >=1.2
-    , vector
-    , yaml >=0.8.3
-    , zlib >=0.6
-  default-language: Haskell2010
-
-executable seq-reg-train
-  main-is: seq-reg-train.hs
-  other-modules:
-      Paths_hasktorch_tools
-  hs-source-dirs:
-      app/seq-lbl
+      app/lstm
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       JuicyPixels
