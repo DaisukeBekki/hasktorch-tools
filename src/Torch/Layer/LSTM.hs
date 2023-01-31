@@ -73,14 +73,14 @@ instance Randomizable LstmHypParams LstmParams where
         c_Dim = hidden_size
         xh1_Dim = x_Dim + h_Dim
         xh2_Dim = if bidirectional
-                    then (2 * x_Dim) + h_Dim
+                    then 3 * h_Dim
                     else xh1_Dim
     LstmParams
       <$> (SingleLstmParams
-            <$> sample (LinearHypParams dev xh1_Dim c_Dim)
-            <*> sample (LinearHypParams dev xh1_Dim c_Dim)
-            <*> sample (LinearHypParams dev xh1_Dim c_Dim)
-            <*> sample (LinearHypParams dev xh1_Dim h_Dim)
+            <$> sample (LinearHypParams dev xh1_Dim c_Dim) -- forgetGate
+            <*> sample (LinearHypParams dev xh1_Dim c_Dim) -- inputGate
+            <*> sample (LinearHypParams dev xh1_Dim c_Dim) -- candGate
+            <*> sample (LinearHypParams dev xh1_Dim h_Dim) -- outputGate
             )
       <*> forM [2..num_layers] (\_ ->
         SingleLstmParams 
@@ -119,10 +119,10 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = do
 
 lstmLayers :: LstmHypParams -- ^ hyper params
   -> LstmParams      -- ^ params
-  -> Tensor          -- ^ an input tensor of shape (L,H_in)
   -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*num_layers,H_out)
+  -> Tensor          -- ^ an input tensor of shape (L,H_in)
   -> IO Tensor       -- ^ [his] of shape (L,D*H_out)
-lstmLayers LstmHypParams{..} LstmParams{..} inputs (h0,c0) = do
+lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs = do
   let (h0h:h0t) = if bidirectional
                     then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..num_layers]]
                     else [sliceDim 0 i (i+1) 1 h0 | i <- [0..num_layers]]
@@ -146,15 +146,14 @@ data InitialStatesHypParams = InitialStatesHypParams {
   , num_layers' :: Int
   } deriving (Eq, Show)
 
-data InitialStatesParams = InitialStatesParams {
-  c0s :: Tensor
-  , h0s :: Tensor
+newtype InitialStatesParams = InitialStatesParams {
+  c0h0s :: (Tensor,Tensor)
   } deriving (Show, Generic)
 instance Parameterized InitialStatesParams
 
 instance Randomizable InitialStatesHypParams InitialStatesParams where
-  sample InitialStatesHypParams{..} = do
-    InitialStatesParams
+  sample InitialStatesHypParams{..} = 
+    (curry InitialStatesParams)
       <$> randnIO' dev' [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
       <*> randnIO' dev' [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
 
