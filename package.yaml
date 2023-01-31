@@ -90,9 +90,9 @@ executables:
     source-dirs:  app/xor-mlp
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
-  lstm:
+  lstmSample:
     main:         Main.hs
-    source-dirs:  app/lstm
+    source-dirs:  app/lstmSample
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: hasktorch-tools
 #  regression:

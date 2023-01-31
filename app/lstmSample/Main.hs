@@ -7,10 +7,12 @@ module Main where
 import Control.Monad (when)
 --import System.IO.Unsafe (unsafePerformIO)
 import Torch.Tensor (shape,dim,sliceDim)
-import Torch.Functional (mul)
+import Torch.Functional (mul,squeezeAll,mseLoss)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.NN (sample)
 import Torch.Autograd (IndependentTensor(..),makeIndependent)
+import Torch.Optim        (GD(..))
+import Torch.Train        (update)
 import Torch.Tensor.TensorFactories (asTensor'',randnIO')
 import Torch.Layer.LSTM   (LstmHypParams(..),LstmParams(..),InitialStatesHypParams(..),InitialStatesParams(..),lstmLayers)
 
@@ -44,5 +46,8 @@ main = do
   lstmParams <- sample lstmHypParams
   let lstm = lstmLayers lstmHypParams lstmParams (c0h0s c0h0Params)
   i <- randnIO' dev [13,2]
-  out <- lstm i
-  print out
+  lstmout <- lstm i
+  gt <- randnIO' dev [13,6]
+  let loss = mseLoss lstmout gt
+  u <- update lstmParams GD loss 1e-1
+  print u

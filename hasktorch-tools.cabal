@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78ee8f5c0bb2617b7992845a565a3ad251d1bb6425d25115d8eea1e89fc465ca
+-- hash: a4b6e175c818379f49d6b080e3c523fc76932989dfb5566000ae1568bd77c2a9
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -122,12 +122,12 @@ executable first-tensor
     , zlib >=0.6
   default-language: Haskell2010
 
-executable lstm
+executable lstmSample
   main-is: Main.hs
   other-modules:
       Paths_hasktorch_tools
   hs-source-dirs:
-      app/lstm
+      app/lstmSample
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       JuicyPixels

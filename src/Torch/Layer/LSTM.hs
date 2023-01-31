@@ -20,7 +20,7 @@ import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
 import Torch.Autograd (IndependentTensor(..),makeIndependent)
 import Torch.Tensor.Util (unstack)
-import Torch.Tensor.TensorFactories (randnIO')
+import Torch.Tensor.TensorFactories (randintIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 
 data LstmHypParams = LstmHypParams {
@@ -154,6 +154,6 @@ instance Parameterized InitialStatesParams
 instance Randomizable InitialStatesHypParams InitialStatesParams where
   sample InitialStatesHypParams{..} = 
     (curry InitialStatesParams)
-      <$> randnIO' dev' [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
-      <*> randnIO' dev' [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
+      <$> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
+      <*> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
 
