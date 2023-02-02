@@ -10,9 +10,10 @@ module Torch.Layer.LSTM (
 
 import Prelude hiding (tanh) 
 import GHC.Generics              --base
-import Data.Maybe (isJust)    --base
+import Data.Maybe (isJust)       --base
 import Data.List (scanl',foldl',scanr) --base
-import Control.Monad (forM,unless)      --base
+import Control.Monad (forM,unless)     --base
+import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
 import Torch.Tensor       (Tensor(..),shape,select,sliceDim)
 import Torch.Functional   (Dim(..),sigmoid,cat,stack,dropout)
@@ -100,7 +101,7 @@ singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
   -> SingleLstmParams   -- ^ params
   -> (Tensor,Tensor)    -- ^ A pair (h0,c0) of shape (hidden_size) or (2,hidden_size)
   -> [Tensor]           -- ^ an input layer
-  -> IO [Tensor]        -- ^ [forward_hi] or [forward_hi+backward_hi]
+  -> IO [Tensor]           -- ^ [forward_hi] or [forward_hi+backward_hi]
 singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = do
   let h0shape = shape h0
       c0shape = shape c0
@@ -112,12 +113,12 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = do
           h0c0b = (select 0 1 h0, select 0 1 c0)
           -- | 以下、(c0,h0)は除くためtailを取る
           forwardLayer = fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs 
-          backwardLayer = fst $ unzip $ init $ scanr (flip $ lstmCell params) h0c0b inputs 
+          backwardLayer = fst $ unzip $ init $ scanr (flip $ lstmCell params) h0c0b inputs
       return $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip forwardLayer backwardLayer
     else do -- LSTM
       unless ((h0shape == [1,stateDim]) && (c0shape == [1,stateDim])) $
         ioError $ userError $ "illegal LSTM shape of h0 or c0: " ++ (show h0shape) ++ " or " ++ (show c0shape)
-      let h0c0f = (select 0 0 h0, select 0 0 c0)
+      let h0c0f = (select 0 0 h0, select 0 0 c0) 
       return $ fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- | (c0,h0)は除くためtailを取る
 
 lstmLayers :: LstmHypParams -- ^ hyper params

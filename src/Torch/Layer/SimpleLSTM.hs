@@ -27,7 +27,7 @@ data LstmHypParams = LstmHypParams {
   } deriving (Eq, Show)
 
 data LstmParams = LstmParams {
-  bareLstmParams :: LSTM.LstmParams
+  lstmParams :: LSTM.LstmParams
   , initialStatesParams :: LSTM.InitialStatesParams
   } deriving (Show, Generic)
 instance Parameterized LstmParams
@@ -45,5 +45,5 @@ lstmLayers :: LstmHypParams -- ^ hyper params
 lstmLayers LstmHypParams{..} LstmParams{..} = 
   LSTM.lstmLayers 
     (LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers dropoutProb proj_size)
-    bareLstmParams
+    lstmParams
     (LSTM.c0h0s initialStatesParams)
