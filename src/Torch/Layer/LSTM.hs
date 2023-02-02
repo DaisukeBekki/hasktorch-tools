@@ -32,7 +32,7 @@ data LstmHypParams = LstmHypParams {
   , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   -- , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
-  -- , proj_size :: Float -- ^ If > 0, will use LSTM with projections of corresponding size.
+  , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
@@ -62,6 +62,7 @@ lstmCell SingleLstmParams{..} (ht,ct) xt =
 data LstmParams = LstmParams {
   firstLstmParams :: SingleLstmParams -- ^ a model for the first LSTM layer
   , restLstmParams :: [SingleLstmParams] -- ^ models for the rest of LSTM layers
+  , projParams :: (Maybe LinearParams)
   } deriving (Show, Generic)
 instance Parameterized LstmParams
 
@@ -72,9 +73,8 @@ instance Randomizable LstmHypParams LstmParams where
         h_Dim = hidden_size
         c_Dim = hidden_size
         xh1_Dim = x_Dim + h_Dim
-        xh2_Dim = if bidirectional
-                    then 3 * h_Dim
-                    else xh1_Dim
+        o_Dim = if bidirectional then 2 * h_Dim else h_Dim
+        xh2_Dim = o_Dim + h_Dim
     LstmParams
       <$> (SingleLstmParams
             <$> sample (LinearHypParams dev xh1_Dim c_Dim) -- forgetGate
@@ -89,6 +89,9 @@ instance Randomizable LstmHypParams LstmParams where
           <*> sample (LinearHypParams dev xh2_Dim c_Dim)
           <*> sample (LinearHypParams dev xh2_Dim h_Dim)
           )
+      <*> (sequence $ case proj_size of 
+            Just projDim -> Just $ sample $ LinearHypParams dev o_Dim projDim
+            Nothing -> Nothing)
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | scanl' :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
@@ -134,10 +137,13 @@ lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs = do
       dropoutLayer = \hs -> case dropoutProb of
                               Just prob -> dropout prob True hs
                               Nothing -> return hs
-  foldl' (\hs nextLayer -> 
-           stack (Dim 0) <$> (nextLayer =<< (unstack <$> (dropoutLayer =<< hs))))
-         (return $ stack (Dim 0) firstLayer)
-         restOfLayers
+  stackedLayers <- foldl' (\hs nextLayer -> stack (Dim 0) <$> (nextLayer =<< (unstack <$> (dropoutLayer =<< hs))))
+                      (return $ stack (Dim 0) firstLayer)
+                      restOfLayers
+  let projLayer = case projParams of
+                    Just projP -> (stack (Dim 0)) . map (linearLayer projP) . unstack
+                    Nothing -> id
+  return $ projLayer $ stackedLayers
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev' :: Device
@@ -156,4 +162,3 @@ instance Randomizable InitialStatesHypParams InitialStatesParams where
     (curry InitialStatesParams)
       <$> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
       <*> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
-

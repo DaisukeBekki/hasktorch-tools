@@ -18,20 +18,34 @@ import Torch.Layer.LSTM   (LstmHypParams(..),LstmParams(..),InitialStatesHypPara
 
 main :: IO()
 main = do
-  let dev = Device CUDA 0
-      i_size = 2
-      h_size = 5
-      seq_len = 13
-      p_size = 1
-      n_layers = 4
+  let device = Device CUDA 0
       isBiLSTM = True
-  c0h0Params <- sample $ InitialStatesHypParams dev isBiLSTM h_size n_layers
-  let lstmHypParams = LstmHypParams dev isBiLSTM i_size h_size n_layers Nothing (Just p_size)
+      i_size = 2
+      h_size = 3
+      n_layers = 3
+      p_size = 1
+      seq_len = 13
+      initialStatesHypParams = InitialStatesHypParams {
+        dev' = device
+        , bidirectional' = isBiLSTM
+        , hidden_size' = h_size
+        , num_layers' = n_layers
+        }
+      lstmHypParams = LstmHypParams {
+        dev = device
+        , bidirectional = isBiLSTM
+        , input_size    = i_size
+        , hidden_size   = h_size
+        , num_layers    = n_layers
+        , dropoutProb   = Just 0.5
+        , proj_size     = Just p_size
+        }
+  c0h0Params <- sample initialStatesHypParams 
   lstmParams <- sample lstmHypParams
   let lstm = lstmLayers lstmHypParams lstmParams (c0h0s c0h0Params)
-  inputs <- randnIO' dev [seq_len,i_size]
+  inputs <- randnIO' device [seq_len,i_size]
   lstmout <- lstm inputs
-  gt <- randnIO' dev [seq_len,p_size]
+  gt <- randnIO' device [seq_len,p_size]
   let loss = mseLoss lstmout gt
   u <- update lstmParams GD loss 1e-1
   print u
