@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Torch.Layer.SimpleLSTM (
+module Torch.Layer.ProtoType.LSTM (
   LstmHypParams(..),
   LstmParams(..),
   lstmCell,

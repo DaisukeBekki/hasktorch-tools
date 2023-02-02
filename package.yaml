@@ -64,7 +64,7 @@ library:
   - Torch.Layer.MLP
   - Torch.Layer.RNN
   - Torch.Layer.LSTM
-  - Torch.Layer.SimpleLSTM
+  - Torch.Layer.ProtoType.LSTM
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
   - Torch.Tensor.Util
