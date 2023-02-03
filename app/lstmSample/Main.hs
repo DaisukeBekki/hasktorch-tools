@@ -42,10 +42,9 @@ main = do
         }
   c0h0Params <- sample initialStatesHypParams 
   lstmParams <- sample lstmHypParams
-  let lstm = lstmLayers lstmHypParams lstmParams (c0h0s c0h0Params)
   inputs <- randnIO' device [seq_len,i_size]
-  lstmout <- lstm inputs
-  gt <- randnIO' device [seq_len,p_size]
-  let loss = mseLoss lstmout gt
-  u <- update lstmParams GD loss 1e-1
+  gt     <- randnIO' device [seq_len,p_size]
+  let lstm = lstmLayers lstmHypParams lstmParams (c0h0s c0h0Params)
+  let loss = mseLoss (lstm inputs) gt
+  u <- update lstmParams GD loss 5e-1
   print u

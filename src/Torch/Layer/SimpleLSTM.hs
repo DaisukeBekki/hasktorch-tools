@@ -41,7 +41,7 @@ instance Randomizable LstmHypParams LstmParams where
 lstmLayers :: LstmHypParams -- ^ hyper params
   -> LstmParams      -- ^ params
   -> Tensor          -- ^ an input tensor of shape (L,H_in)
-  -> IO Tensor       -- ^ [his] of shape (L,D*H_out)
+  -> Tensor       -- ^ [his] of shape (L,D*H_out)
 lstmLayers LstmHypParams{..} LstmParams{..} = 
   LSTM.lstmLayers 
     (LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers dropoutProb proj_size)
