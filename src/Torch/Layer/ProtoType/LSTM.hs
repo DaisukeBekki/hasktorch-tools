@@ -50,10 +50,10 @@ instance Randomizable LstmHypParams LstmParams where
     LstmParams
       <$> forM [1..numOfLayers] (\_ ->
         SingleLstmParams 
-          <$> sample (LinearHypParams dev xh_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh_Dim h_Dim)
+          <$> sample (LinearHypParams dev True xh_Dim c_Dim)
+          <*> sample (LinearHypParams dev True xh_Dim c_Dim)
+          <*> sample (LinearHypParams dev True xh_Dim c_Dim)
+          <*> sample (LinearHypParams dev True xh_Dim h_Dim)
           )
       <*> forM [1..(numOfLayers-1)] (\_ ->
         (\x y -> (x,y)) -- IO(a)->IO(b->(a,b))

@@ -31,7 +31,7 @@ data LstmHypParams = LstmHypParams {
   , input_size :: Int  -- ^ The number of expected features in the input x
   , hidden_size :: Int -- ^ The number of features in the hidden state h
   , num_layers :: Int     -- ^ Number of recurrent layers
-  -- , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
+  , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
   , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
@@ -79,20 +79,20 @@ instance Randomizable LstmHypParams LstmParams where
         xh2_Dim = o_Dim + h_Dim
     LstmParams
       <$> (SingleLstmParams
-            <$> sample (LinearHypParams dev xh1_Dim c_Dim) -- forgetGate
-            <*> sample (LinearHypParams dev xh1_Dim c_Dim) -- inputGate
-            <*> sample (LinearHypParams dev xh1_Dim c_Dim) -- candGate
-            <*> sample (LinearHypParams dev xh1_Dim h_Dim) -- outputGate
+            <$> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- forgetGate
+            <*> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- inputGate
+            <*> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- candGate
+            <*> sample (LinearHypParams dev bias xh1_Dim h_Dim) -- outputGate
             )
       <*> forM [2..num_layers] (\_ ->
         SingleLstmParams 
-          <$> sample (LinearHypParams dev xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev xh2_Dim h_Dim)
+          <$> sample (LinearHypParams dev bias xh2_Dim c_Dim)
+          <*> sample (LinearHypParams dev bias xh2_Dim c_Dim)
+          <*> sample (LinearHypParams dev bias xh2_Dim c_Dim)
+          <*> sample (LinearHypParams dev bias xh2_Dim h_Dim)
           )
       <*> (sequence $ case proj_size of 
-            Just projDim -> Just $ sample $ LinearHypParams dev o_Dim projDim
+            Just projDim -> Just $ sample $ LinearHypParams dev True o_Dim projDim
             Nothing -> Nothing)
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す

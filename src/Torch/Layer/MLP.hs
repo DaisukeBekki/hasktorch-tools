@@ -49,7 +49,7 @@ instance Randomizable MLPHypParams MLPParams where
   sample MLPHypParams{..} = do
     let layersSpecs = (inputDim,Id):layerSpecs 
     layers <- forM (toPairwise layersSpecs) $ \((inputDim,_),(outputDim,outputAct)) -> do
-          linearLayer <- sample $ LinearHypParams dev inputDim outputDim
+          linearLayer <- sample $ LinearHypParams dev True inputDim outputDim
           return $ (linearLayer, decode outputAct)
     return $ MLPParams layers
 

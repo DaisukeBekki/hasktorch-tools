@@ -28,8 +28,8 @@ data RNNParams = RNNParams
 instance Randomizable RNNHypParams RNNParams where
   sample RNNHypParams {..} =
     RNNParams
-      <$> sample (LinearHypParams dev inputDim hiddenDim)
-      <*> sample (LinearHypParams dev hiddenDim hiddenDim)
+      <$> sample (LinearHypParams dev True inputDim hiddenDim)
+      <*> sample (LinearHypParams dev True hiddenDim hiddenDim)
 
 rnnCell ::
   RNNParams ->

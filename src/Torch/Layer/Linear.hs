@@ -21,31 +21,38 @@ import Torch.Tensor.Initializers    (xavierUniform')
 
 data LinearHypParams = LinearHypParams {
   dev :: Device,
+  ifBias :: Bool,
   inputDim :: Int,
   outputDim :: Int
   } deriving (Eq, Show)
 
 data LinearParams = LinearParams { 
   weight :: Parameter,
-  bias :: Parameter
+  bias :: Maybe Parameter
   } deriving (Generic)
 
 instance Parameterized LinearParams -- Generic
 
 instance Randomizable LinearHypParams LinearParams where
-  sample LinearHypParams{..} = do
-    w <- makeIndependent =<< xavierUniform' dev [outputDim, inputDim]
-    b <- makeIndependent =<< randintIO' dev (-1) 1 [outputDim]
-    return $ LinearParams w b
+  sample LinearHypParams{..} = 
+    LinearParams
+      <$> (makeIndependent =<< xavierUniform' dev [outputDim, inputDim])
+      <*> if ifBias
+            then (Just <$> (makeIndependent =<< randintIO' dev (-1) 1 [outputDim]))
+            else return Nothing
 
 instance Show LinearParams where
   show LinearParams{..} = 
     "Parameters:\n"
     ++ (show $ toCPU $ toDependent weight)
-    ++ "\nBias:\n"
-    ++ (show $ toCPU $ toDependent bias) 
+    ++ case bias of
+         Just b -> "\nBias:\n"
+                   ++ (show $ toCPU $ toDependent b)
+         Nothing -> "" 
     
 linearLayer :: LinearParams -> Tensor -> Tensor
 linearLayer LinearParams{..} input =
-  squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent bias)
+  case bias of
+    Just b -> squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent b)
+    Nothing -> squeezeAll $ ((toDependent weight) `matmul` input)
 

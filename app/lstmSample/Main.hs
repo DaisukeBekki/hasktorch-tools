@@ -20,7 +20,7 @@ main = do
       projDim = 1
       seqLen = 13
       initialStatesHypParams = InitialStatesHypParams dev isBiLSTM hiddenDim numOfLayers 
-      lstmHypParams = LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers (Just 0.5) (Just projDim)
+      lstmHypParams = LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers True (Just 0.5) (Just projDim)
   c0h0Params <- sample initialStatesHypParams 
   lstmParams <- sample lstmHypParams
   inputs <- randnIO' dev [seqLen,inputDim]

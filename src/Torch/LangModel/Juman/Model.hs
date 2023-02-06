@@ -42,7 +42,7 @@ instance Randomizable JLstmHypParams JLstmParams where
   sample JLstmHypParams{..} = 
     case proj_size lstmHypParams of
       Just proj -> JLstmParams
-        <$> (sample $ LinearHypParams (L.dev lstmHypParams) dictDim (input_size lstmHypParams))
+        <$> (sample $ LinearHypParams (L.dev lstmHypParams) True dictDim (input_size lstmHypParams))
         <*> (sample lstmHypParams)
         <*> (sample $ MLPHypParams (L.dev lstmHypParams) proj mlpLayers)
 
