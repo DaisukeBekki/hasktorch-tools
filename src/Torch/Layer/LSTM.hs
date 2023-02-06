@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, DisambiguateRecordFields, DuplicateRecordFields #-}
 
 module Torch.Layer.LSTM (
   LstmHypParams(..)
@@ -6,6 +6,7 @@ module Torch.Layer.LSTM (
   , InitialStatesHypParams(..)
   , InitialStatesParams(..)
   , lstmLayers
+  , toDependentTensors
   ) where 
 
 import Prelude hiding (tanh) 
@@ -30,9 +31,9 @@ data LstmHypParams = LstmHypParams {
   , input_size :: Int  -- ^ The number of expected features in the input x
   , hidden_size :: Int -- ^ The number of features in the hidden state h
   , num_layers :: Int     -- ^ Number of recurrent layers
-  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   -- , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
+  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
@@ -102,11 +103,11 @@ singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
   -> (Tensor,Tensor)    -- ^ A pair (h0,c0) of shape (hidden_size) or (2,hidden_size)
   -> [Tensor]           -- ^ an input layer
   -> [Tensor]           -- ^ [forward_hi] or [forward_hi+backward_hi]
-singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = do
+singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = unsafePerformIO $ do
   let h0shape = shape h0
-      c0shape = shape c0
+      c0shape = shape c0 
   if isBiLSTM -- check the well-formedness of the shapes of h0 and c0
-    then unsafePerformIO $ do -- the case of BiLSTM
+    then do -- the case of BiLSTM
       unless ((h0shape == [2,stateDim]) && (c0shape == [2,stateDim])) $ -- check the input shape
         ioError $ userError $ "illegal BiLSTM shape of h0 or c0: " ++ (show h0shape) ++ " or " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) -- pick the first (h0,c0) pair for the forward cells
@@ -114,17 +115,17 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = do
           forwardLayer = fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- removing (h0,c0) by tail
           backwardLayer = fst $ unzip $ init $ scanr (flip $ lstmCell params) h0c0b inputs -- removing (h0,c0) by init
       return $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip forwardLayer backwardLayer
-    else unsafePerformIO $ do -- the case of LSTM
+    else do -- the case of LSTM
       unless ((h0shape == [1,stateDim]) && (c0shape == [1,stateDim])) $ -- check the input shape
         ioError $ userError $ "illegal LSTM shape of h0 or c0: " ++ (show h0shape) ++ " or " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
       return $ fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- | (c0,h0)は除くためtailを取る
 
-lstmLayers :: LstmHypParams -- ^ hyper params
-  -> LstmParams      -- ^ params
+lstmLayers :: LstmHypParams -- ^ hyper parameters
+  -> LstmParams      -- ^ parameters (=model)
   -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*num_layers,H_out)
-  -> Tensor          -- ^ an input tensor of shape (L,H_in)
-  -> Tensor       -- ^ [h_i] of shape (L,D*H_out)
+  -> Tensor          -- ^ an input tensor of shape (seq_len,H_in)
+  -> Tensor          -- ^ [h_i] of shape (seq_len,D*H_out)
 lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs = 
   let (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
                     then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..num_layers]]
@@ -146,19 +147,23 @@ lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs =
   in (projLayer . stackedLayers . (stack (Dim 0)) . firstLayer . unstack) inputs
 
 data InitialStatesHypParams = InitialStatesHypParams {
-  dev' :: Device
-  , bidirectional' :: Bool
-  , hidden_size' :: Int
-  , num_layers' :: Int
+  dev :: Device
+  , bidirectional :: Bool
+  , hidden_size :: Int
+  , num_layers :: Int
   } deriving (Eq, Show)
 
-newtype InitialStatesParams = InitialStatesParams {
-  c0h0s :: (Tensor,Tensor)
+data InitialStatesParams = InitialStatesParams {
+  h0 :: Parameter 
+  , c0 :: Parameter
   } deriving (Show, Generic)
 instance Parameterized InitialStatesParams
 
 instance Randomizable InitialStatesHypParams InitialStatesParams where
   sample InitialStatesHypParams{..} = 
-    (curry InitialStatesParams)
-      <$> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
-      <*> randintIO' dev' (-1) 1 [(if bidirectional' then 2 else 1) * num_layers', hidden_size']
+    InitialStatesParams
+      <$> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * num_layers, hidden_size])
+      <*> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * num_layers, hidden_size])
+
+toDependentTensors :: InitialStatesParams -> (Tensor,Tensor)
+toDependentTensors InitialStatesParams{..} = (toDependent h0,toDependent c0)

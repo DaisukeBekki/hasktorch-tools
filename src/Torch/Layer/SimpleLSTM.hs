@@ -20,9 +20,9 @@ data LstmHypParams = LstmHypParams {
   , input_size :: Int  -- ^ The number of expected features in the input x
   , hidden_size :: Int -- ^ The number of features in the hidden state h
   , num_layers :: Int     -- ^ Number of recurrent layers
-  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   -- , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
+  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
   , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
@@ -38,12 +38,10 @@ instance Randomizable LstmHypParams LstmParams where
       <$> (sample $ LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers dropoutProb proj_size)
       <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional hidden_size num_layers)
 
-lstmLayers :: LstmHypParams -- ^ hyper params
-  -> LstmParams      -- ^ params
-  -> Tensor          -- ^ an input tensor of shape (L,H_in)
+lstmLayers :: LstmHypParams 
+  -> LstmParams -- ^ params
+  -> Tensor       -- ^ an input tensor of shape (L,H_in)
   -> Tensor       -- ^ [his] of shape (L,D*H_out)
 lstmLayers LstmHypParams{..} LstmParams{..} = 
-  LSTM.lstmLayers 
-    (LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers dropoutProb proj_size)
-    lstmParams
-    (LSTM.c0h0s initialStatesParams)
+  let lstmHypParams = LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers dropoutProb proj_size
+  in LSTM.lstmLayers lstmHypParams lstmParams (LSTM.toDependentTensors initialStatesParams)
