@@ -1,5 +1,7 @@
 {-# LANGUAGE ExtendedDefaultRules, DeriveGeneric #-}
 
+-- Daisuke Bekki
+
 -- | forked from dynet-tools/Tools/Juman.hs
 module Torch.LangModel.Juman.Dict (
   prepareJumanData,

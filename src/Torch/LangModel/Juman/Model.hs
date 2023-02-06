@@ -1,9 +1,9 @@
 {-# LANGUAGE ExtendedDefaultRules, DeriveGeneric #-}
 
 module Torch.LangModel.Juman.Model (
-  JLSTMHypParams(..),
-  JLSTMParams(..),
-  jLSTMlayer
+  JLstmHypParams(..),
+  JLstmParams(..),
+  jLstmLayer
   ) where
 
 --import Control.Monad (when)        --base
@@ -13,47 +13,67 @@ import qualified Data.Text as T    --text
 import qualified Text.Juman as J   --juman-tools
 -- | hasktorch
 import Torch.Tensor (Tensor(..))
-import Torch.Device (Device(..))
+import Torch.Functional (Dim(..),stack)
+import Torch.Device (Device(..),DeviceType(..))
 import Torch.NN (Parameterized(..),Randomizable(..),sample)
 -- | hasktorch-tools
 import Torch.Tensor.TensorFactories (asTensor'')
-import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
-import Torch.Layer.MLP (MLPHypParams(..),MLPParams(..),ActName(..))
-import Torch.Layer.LSTM (LstmHypParams(..),LstmParams(..),lstmLayers)
+import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer) 
+import Torch.Layer.MLP (MLPHypParams(..),MLPParams(..),ActName(..),mlpLayer)
+import Torch.Layer.SimpleLSTM as L (LstmHypParams(..),LstmParams(..),lstmLayers)
 import Torch.LangModel.Juman.Dict (WordInfo,jumanData2Tuples) 
+import Torch.Tensor.Util (unstack)
 
-data JLSTMHypParams = JLSTMHypParams {
-  dev :: Device,
-  dictDim :: Int,
-  embDim :: Int,
-  mlp_layers :: [(Int,ActName)]
+-- | hyper parameters：ここで必要な
+data JLstmHypParams = JLstmHypParams {
+  lstmHypParams :: LstmHypParams
+  , dictDim :: Int
+  , mlpLayers :: [(Int,ActName)]
   } deriving (Eq, Show)
 
-data JLSTMParams = JLSTMParams {
-  w_emb :: LinearParams, 
-  lstm_params :: LstmParams,
-  mlp_params :: MLPParams
+data JLstmParams = JLstmParams {
+  wEmbParams :: LinearParams
+  , lstmParams :: LstmParams
+  , mlpParams :: MLPParams
   } deriving (G.Generic)
+instance Parameterized JLstmParams
 
-instance Parameterized JLSTMParams
+instance Randomizable JLstmHypParams JLstmParams where
+  sample JLstmHypParams{..} = 
+    case proj_size lstmHypParams of
+      Just proj -> JLstmParams
+        <$> (sample $ LinearHypParams (L.dev lstmHypParams) dictDim (input_size lstmHypParams))
+        <*> (sample lstmHypParams)
+        <*> (sample $ MLPHypParams (L.dev lstmHypParams) proj mlpLayers)
 
-instance Randomizable JLSTMHypParams JLSTMParams where
-  sample JLSTMHypParams{..} = 
-    JLSTMParams
-    <$> sample (LinearHypParams dev dictDim embDim)
-    <*> sample (LstmHypParams dev embDim 1)
-    <*> sample (MLPHypParams dev (embDim * 2) mlp_layers)
-
-jLSTMlayer :: JLSTMParams
-           -> Device                -- ^ device for tensors
-           -> (WordInfo -> [Float]) -- ^ one-hot function
-           -> T.Text                -- ^ input text
-           -> IO([Tensor], [T.Text])  -- ^ (output layer, surface forms)
-jLSTMlayer JLSTMParams{..} dev oneHot text = do
+jLstmLayer :: JLstmHypParams
+  -> JLstmParams
+  -> (WordInfo -> [Float]) -- ^ one-hot function
+  -> T.Text                -- ^ input text
+  -> IO ([Tensor],[T.Text])  -- ^ (output layer, surface forms)
+jLstmLayer JLstmHypParams{..} JLstmParams{..} oneHot text = do
   jumanOutput <- J.text2jumanData' text -- [JumanData]
-  let wordInfos = jumanData2Tuples jumanOutput
-      w_emb_layer = map (\w -> linearLayer w_emb $ asTensor'' dev $ oneHot w) wordInfos
-      output_layer = lstmLayers True lstm_params w_emb_layer
-  return $ (output_layer,
-            map (\(surfaceForm,_,_) -> surfaceForm) wordInfos)
+  let dev = L.dev lstmHypParams
+      word_infos = jumanData2Tuples jumanOutput
+      w_emb_layer = map (\w -> linearLayer wEmbParams $ asTensor'' dev $ oneHot w)
+      lstm_layers = lstmLayers lstmHypParams lstmParams 
+      mlp_layer = mlpLayer mlpParams 
+  return $ ((unstack . mlp_layer . lstm_layers . (stack (Dim 0)) . w_emb_layer) word_infos,
+           map (\(surfaceForm,_,_) -> surfaceForm) word_infos)
+
+main :: IO ()
+main = do
+  let jLstmHypParams = JLstmHypParams {
+        lstmHypParams = LstmHypParams {
+          dev = Device CUDA 0
+          , bidirectional = True
+          , input_size = 10
+          , hidden_size = 32
+          , num_layers = 3
+          , proj_size = Just 2
+          },
+        dictDim = 0,
+        mlpLayers = [(1,Relu),(10,Relu)]
+        }
+  print "test done."
 
