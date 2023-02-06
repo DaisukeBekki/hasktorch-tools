@@ -11,13 +11,14 @@ module Torch.Layer.Linear (
   ) where  
 
 import GHC.Generics          --base
+import Data.List             (singleton)
 import Torch.Tensor          (Tensor(..),toCPU)
 import Torch.Functional      (matmul,squeezeAll)
 import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd        (IndependentTensor(..),makeIndependent)
-import Torch.Tensor.TensorFactories (randintIO')
-import Torch.Tensor.Initializers    (xavierUniform')
+import Torch.Tensor.TensorFactories (asTensor'',randintIO')
+--import Torch.Tensor.Initializers    (xavierUniform')
 
 data LinearHypParams = LinearHypParams {
   dev :: Device,
@@ -34,9 +35,12 @@ data LinearParams = LinearParams {
 instance Parameterized LinearParams -- Generic
 
 instance Randomizable LinearHypParams LinearParams where
-  sample LinearHypParams{..} = 
+  sample LinearHypParams{..} = do
+    let denom = asTensor'' dev $ singleton $ sqrt $ ((fromIntegral outputDim)::Float)
     LinearParams
-      <$> (makeIndependent =<< xavierUniform' dev [outputDim, inputDim])
+      <$> do
+          matrix <- randintIO' dev (-1) 1 [outputDim, inputDim] 
+          makeIndependent (matrix / denom)
       <*> if ifBias
             then (Just <$> (makeIndependent =<< randintIO' dev (-1) 1 [outputDim]))
             else return Nothing
