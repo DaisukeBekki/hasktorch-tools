@@ -25,7 +25,7 @@ instance A.ToJSON ActName
 
 decode :: ActName -> Tensor -> Tensor
 decode actname = case actname of
-                   Id  -> (\x -> x)
+                   Id  -> id
                    Sigmoid -> sigmoid
                    Tanh -> tanh
                    Relu -> relu
@@ -61,7 +61,6 @@ instance Show MLPParams where
 
 mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
 mlpLayer MLPParams{..} input = squeezeAll $ foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
---mlpLayer MLPParams{..} = squeezeAll . a2 . linearLayer l2 . a1 . linearLayer l1
 
 -- | Example:
 -- | toPairwise [(4,"a"),(5,"b"),(6,"c")] = [((4,"a"),(5,"b")),((5,"b"),(6,"c"))]

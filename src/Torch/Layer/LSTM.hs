@@ -1,4 +1,6 @@
-{-# LANGUAGE DeriveGeneric, DisambiguateRecordFields, DuplicateRecordFields #-}
+{-# LANGUAGE DeriveGeneric #-}
+--{-# LANGUAGE DisambiguateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Torch.Layer.LSTM (
   LstmHypParams(..)
@@ -21,6 +23,7 @@ import Torch.Functional   (Dim(..),sigmoid,cat,stack,dropout)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
 import Torch.Autograd (IndependentTensor(..),makeIndependent)
+--hasktorch-tools
 import Torch.Tensor.Util (unstack)
 import Torch.Tensor.TensorFactories (randintIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
@@ -28,13 +31,13 @@ import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 data LstmHypParams = LstmHypParams {
   dev :: Device
   , bidirectional :: Bool 
-  , input_size :: Int  -- ^ The number of expected features in the input x
-  , hidden_size :: Int -- ^ The number of features in the hidden state h
-  , num_layers :: Int     -- ^ Number of recurrent layers
-  , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
+  , inputSize :: Int  -- ^ The number of expected features in the input x
+  , hiddenSize :: Int -- ^ The number of features in the hidden state h
+  , numLayers :: Int     -- ^ Number of recurrent layers
+  , hasBias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
   , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
-  , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
+  , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
@@ -71,28 +74,28 @@ instance Parameterized LstmParams
 -- (makeIndependent =<< randnIO' dev [c_Dim]) 
 instance Randomizable LstmHypParams LstmParams where
   sample LstmHypParams{..} = do
-    let x_Dim = input_size
-        h_Dim = hidden_size
-        c_Dim = hidden_size
-        xh1_Dim = x_Dim + h_Dim
-        o_Dim = if bidirectional then 2 * h_Dim else h_Dim
-        xh2_Dim = o_Dim + h_Dim
+    let xDim = inputSize
+        hDim = hiddenSize
+        cDim = hiddenSize
+        xh1Dim = xDim + hDim
+        oDim = if bidirectional then 2 * hDim else hDim
+        xh2Dim = oDim + hDim
     LstmParams
       <$> (SingleLstmParams
-            <$> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- forgetGate
-            <*> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- inputGate
-            <*> sample (LinearHypParams dev bias xh1_Dim c_Dim) -- candGate
-            <*> sample (LinearHypParams dev bias xh1_Dim h_Dim) -- outputGate
+            <$> sample (LinearHypParams dev hasBias xh1Dim cDim) -- forgetGate
+            <*> sample (LinearHypParams dev hasBias xh1Dim cDim) -- inputGate
+            <*> sample (LinearHypParams dev hasBias xh1Dim cDim) -- candGate
+            <*> sample (LinearHypParams dev hasBias xh1Dim hDim) -- outputGate
             )
-      <*> forM [2..num_layers] (\_ ->
+      <*> forM [2..numLayers] (\_ ->
         SingleLstmParams 
-          <$> sample (LinearHypParams dev bias xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev bias xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev bias xh2_Dim c_Dim)
-          <*> sample (LinearHypParams dev bias xh2_Dim h_Dim)
+          <$> sample (LinearHypParams dev hasBias xh2Dim cDim)
+          <*> sample (LinearHypParams dev hasBias xh2Dim cDim)
+          <*> sample (LinearHypParams dev hasBias xh2Dim cDim)
+          <*> sample (LinearHypParams dev hasBias xh2Dim hDim)
           )
-      <*> (sequence $ case proj_size of 
-            Just projDim -> Just $ sample $ LinearHypParams dev True o_Dim projDim
+      <*> (sequence $ case projSize of 
+            Just projDim -> Just $ sample $ LinearHypParams dev True oDim projDim
             Nothing -> Nothing)
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
@@ -128,13 +131,13 @@ lstmLayers :: LstmHypParams -- ^ hyper parameters
   -> Tensor          -- ^ [h_i] of shape (seq_len,D*H_out)
 lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs = 
   let (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
-                    then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..num_layers]]
-                    else [sliceDim 0 i (i+1) 1 h0 | i <- [0..num_layers]]
+                    then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..numLayers]]
+                    else [sliceDim 0 i (i+1) 1 h0 | i <- [0..numLayers]]
       (c0h:c0t) = if bidirectional -- check the input shapes of c0 tensor
-                    then [sliceDim 0 (2*i) (2*i+2) 1 c0 | i <- [0..num_layers]]
-                    else [sliceDim 0 i (i+1) 1 c0 | i <- [0..num_layers]]
-      firstLayer = singleLstmLayer bidirectional hidden_size firstLstmParams (h0h,c0h) 
-      restOfLayers = map (uncurry $ singleLstmLayer bidirectional hidden_size) $ zip restLstmParams $ zip h0t c0t
+                    then [sliceDim 0 (2*i) (2*i+2) 1 c0 | i <- [0..numLayers]]
+                    else [sliceDim 0 i (i+1) 1 c0 | i <- [0..numLayers]]
+      firstLayer = singleLstmLayer bidirectional hiddenSize firstLstmParams (h0h,c0h) 
+      restOfLayers = map (uncurry $ singleLstmLayer bidirectional hiddenSize) $ zip restLstmParams $ zip h0t c0t
       dropoutLayer = case dropoutProb of
                        Just prob -> unsafePerformIO . (dropout prob True)
                        Nothing -> id
@@ -149,8 +152,8 @@ lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs =
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device
   , bidirectional :: Bool
-  , hidden_size :: Int
-  , num_layers :: Int
+  , hiddenSize :: Int
+  , numLayers :: Int
   } deriving (Eq, Show)
 
 data InitialStatesParams = InitialStatesParams {
@@ -162,8 +165,8 @@ instance Parameterized InitialStatesParams
 instance Randomizable InitialStatesHypParams InitialStatesParams where
   sample InitialStatesHypParams{..} = 
     InitialStatesParams
-      <$> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * num_layers, hidden_size])
-      <*> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * num_layers, hidden_size])
+      <$> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * numLayers, hiddenSize])
+      <*> (makeIndependent =<< randintIO' dev (-1) 1 [(if bidirectional then 2 else 1) * numLayers, hiddenSize])
 
 toDependentTensors :: InitialStatesParams -> (Tensor,Tensor)
 toDependentTensors InitialStatesParams{..} = (toDependent h0,toDependent c0)

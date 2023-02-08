@@ -22,7 +22,7 @@ import Torch.Tensor.TensorFactories (asTensor'',randintIO')
 
 data LinearHypParams = LinearHypParams {
   dev :: Device,
-  ifBias :: Bool,
+  hasBias :: Bool,
   inputDim :: Int,
   outputDim :: Int
   } deriving (Eq, Show)
@@ -37,12 +37,12 @@ instance Parameterized LinearParams -- Generic
 instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
     let denom = asTensor'' dev $ singleton $ sqrt $ ((fromIntegral outputDim)::Float)
+    m <- randintIO' dev (-1) 1 [outputDim, inputDim] 
+    b <- randintIO' dev (-1) 1 [outputDim]
     LinearParams
-      <$> do
-          matrix <- randintIO' dev (-1) 1 [outputDim, inputDim] 
-          makeIndependent (matrix / denom)
-      <*> if ifBias
-            then (Just <$> (makeIndependent =<< randintIO' dev (-1) 1 [outputDim]))
+      <$> makeIndependent (m / denom) -- denomでnormalize
+      <*> if hasBias
+            then Just <$> (makeIndependent b)
             else return Nothing
 
 instance Show LinearParams where
@@ -50,13 +50,12 @@ instance Show LinearParams where
     "Parameters:\n"
     ++ (show $ toCPU $ toDependent weight)
     ++ case bias of
-         Just b -> "\nBias:\n"
-                   ++ (show $ toCPU $ toDependent b)
-         Nothing -> "" 
+         Just bias' -> "\nBias:\n" ++ (show $ toCPU $ toDependent bias')
+         Nothing    -> "" 
     
 linearLayer :: LinearParams -> Tensor -> Tensor
 linearLayer LinearParams{..} input =
   case bias of
-    Just b -> squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent b)
+    Just bias' -> squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent bias')
     Nothing -> squeezeAll $ ((toDependent weight) `matmul` input)
 
