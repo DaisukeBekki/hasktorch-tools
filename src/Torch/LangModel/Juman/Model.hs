@@ -40,23 +40,23 @@ instance Parameterized JLstmParams
 
 instance Randomizable JLstmHypParams JLstmParams where
   sample JLstmHypParams{..} = 
-    case proj_size lstmHypParams of
+    case projSize lstmHypParams of
       Just proj -> JLstmParams
-        <$> (sample $ LinearHypParams (L.dev lstmHypParams) True dictDim (input_size lstmHypParams))
+        <$> (sample $ LinearHypParams (L.dev lstmHypParams) True dictDim (inputSize lstmHypParams))
         <*> (sample lstmHypParams)
         <*> (sample $ MLPHypParams (L.dev lstmHypParams) proj mlpLayers)
 
-jLstmLayer :: JLstmHypParams
-  -> JLstmParams
+jLstmLayer :: JLstmParams
+  -> Device
   -> (WordInfo -> [Float]) -- ^ one-hot function
+  -> Maybe Double 
   -> T.Text                -- ^ input text
   -> IO ([Tensor],[T.Text])  -- ^ (output layer, surface forms)
-jLstmLayer JLstmHypParams{..} JLstmParams{..} oneHot text = do
+jLstmLayer JLstmParams{..} dev oneHot dropoutProb text = do
   jumanOutput <- J.text2jumanData' text -- [JumanData]
-  let dev = L.dev lstmHypParams
-      word_infos = jumanData2Tuples jumanOutput
+  let word_infos = jumanData2Tuples jumanOutput
       w_emb_layer = map (\w -> linearLayer wEmbParams $ asTensor'' dev $ oneHot w)
-      lstm_layers = lstmLayers lstmHypParams lstmParams 
+      lstm_layers = lstmLayers lstmParams dropoutProb
       mlp_layer = mlpLayer mlpParams 
   return $ ((unstack . mlp_layer . lstm_layers . (stack (Dim 0)) . w_emb_layer) word_infos,
            map (\(surfaceForm,_,_) -> surfaceForm) word_infos)
@@ -67,10 +67,10 @@ main = do
         lstmHypParams = LstmHypParams {
           dev = Device CUDA 0
           , bidirectional = True
-          , input_size = 10
-          , hidden_size = 32
-          , num_layers = 3
-          , proj_size = Just 2
+          , inputSize = 10
+          , hiddenSize = 32
+          , numLayers = 3
+          , projSize = Just 2
           },
         dictDim = 0,
         mlpLayers = [(1,Relu),(10,Relu)]

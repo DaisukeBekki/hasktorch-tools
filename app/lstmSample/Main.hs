@@ -13,19 +13,17 @@ import Torch.Layer.LSTM   (LstmHypParams(..),InitialStatesHypParams(..),lstmLaye
 main :: IO()
 main = do
   let dev = Device CUDA 0
-      isBiLSTM = True
+      isBiLSTM = False
       inputDim = 2
       hiddenDim = 3
       numOfLayers = 3
       projDim = 1
       seqLen = 13
-      initialStatesHypParams = InitialStatesHypParams dev isBiLSTM hiddenDim numOfLayers 
-      lstmHypParams = LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers True (Just 0.5) (Just projDim)
-  c0h0Params <- sample initialStatesHypParams 
-  lstmParams <- sample lstmHypParams
+  c0h0Params <- sample $ InitialStatesHypParams dev isBiLSTM hiddenDim numOfLayers 
+  lstmParams <- sample $ LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers True (Just projDim)
   inputs <- randnIO' dev [seqLen,inputDim]
   gt     <- randnIO' dev [seqLen,projDim]
-  let lstmOut = lstmLayers lstmHypParams lstmParams (toDependentTensors c0h0Params) inputs
+  let lstmOut = lstmLayers lstmParams (toDependentTensors c0h0Params) (Just 0.5) inputs
       loss = mseLoss lstmOut gt
   u <- update lstmParams GD loss 5e-1
   print u

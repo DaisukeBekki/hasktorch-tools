@@ -36,8 +36,7 @@ data LstmHypParams = LstmHypParams {
   , numLayers :: Int     -- ^ Number of recurrent layers
   , hasBias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
-  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
-  , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
+    , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
@@ -124,13 +123,18 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = unsafePerformIO $ do
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
       return $ fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- | (c0,h0)は除くためtailを取る
 
-lstmLayers :: LstmHypParams -- ^ hyper parameters
-  -> LstmParams      -- ^ parameters (=model)
-  -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*num_layers,H_out)
-  -> Tensor          -- ^ an input tensor of shape (seq_len,H_in)
-  -> Tensor          -- ^ [h_i] of shape (seq_len,D*H_out)
-lstmLayers LstmHypParams{..} LstmParams{..} (h0,c0) inputs = 
-  let (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
+lstmLayers :: LstmParams      -- ^ parameters (=model)
+  -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*numLayers,hiddenSize)
+  -> Maybe Double    -- ^ introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
+  -> Tensor          -- ^ an input tensor of shape (seqLen,inputSize)
+  -> Tensor          -- ^ [h_i] of shape (seqLen,D*hiddenSize)
+lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = 
+  let numLayers = length restLstmParams + 1
+      (dnumLayers:(hiddenSize:_)) = shape h0
+      bidirectional | dnumLayers == numLayers * 2 = True
+                    | dnumLayers == numLayers = False
+                    | otherwise = False
+      (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
                     then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..numLayers]]
                     else [sliceDim 0 i (i+1) 1 h0 | i <- [0..numLayers]]
       (c0h:c0t) = if bidirectional -- check the input shapes of c0 tensor

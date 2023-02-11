@@ -17,13 +17,12 @@ import qualified Torch.Layer.LSTM as LSTM
 data LstmHypParams = LstmHypParams {
   dev :: Device
   , bidirectional :: Bool 
-  , input_size :: Int  -- ^ The number of expected features in the input x
-  , hidden_size :: Int -- ^ The number of features in the hidden state h
-  , num_layers :: Int     -- ^ Number of recurrent layers
-  , bias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
+  , inputSize :: Int  -- ^ The number of expected features in the input x
+  , hiddenSize :: Int -- ^ The number of features in the hidden state h
+  , numLayers :: Int     -- ^ Number of recurrent layers
+  , hasBias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
-  , dropoutProb :: Maybe Double  -- ^ If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
-  , proj_size :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
+  , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
 data LstmParams = LstmParams {
@@ -35,13 +34,12 @@ instance Parameterized LstmParams
 instance Randomizable LstmHypParams LstmParams where
   sample LstmHypParams{..} = 
     LstmParams
-      <$> (sample $ LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers bias dropoutProb proj_size)
-      <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional hidden_size num_layers)
+      <$> (sample $ LSTM.LstmHypParams dev bidirectional inputSize hiddenSize numLayers hasBias projSize)
+      <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional hiddenSize numLayers)
 
-lstmLayers :: LstmHypParams 
-  -> LstmParams -- ^ params
+lstmLayers :: LstmParams -- ^ params
+  -> Maybe Double 
   -> Tensor       -- ^ an input tensor of shape (L,H_in)
   -> Tensor       -- ^ [his] of shape (L,D*H_out)
-lstmLayers LstmHypParams{..} LstmParams{..} = 
-  let lstmHypParams = LSTM.LstmHypParams dev bidirectional input_size hidden_size num_layers bias dropoutProb proj_size
-  in LSTM.lstmLayers lstmHypParams lstmParams (LSTM.toDependentTensors initialStatesParams)
+lstmLayers LstmParams{..} dropoutProb = 
+  LSTM.lstmLayers lstmParams (LSTM.toDependentTensors initialStatesParams) dropoutProb
