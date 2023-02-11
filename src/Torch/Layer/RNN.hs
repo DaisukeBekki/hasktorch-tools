@@ -9,9 +9,13 @@ module Torch.Layer.RNN (
   rnnLayer,
 ) where
 
+import GHC.Generics                       --base
+import System.IO.Unsafe (unsafePerformIO) --base
+--hasktorch
 import Torch
+--hasktorch-tools
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
-import GHC.Generics
+import Torch.Tensor.Util (unstack)
 
 data RNNHypParams = RNNHypParams
   { 
@@ -42,15 +46,14 @@ rnnCell ::
 rnnCell RNNParams {..} ht xt =
   Torch.tanh ( linearLayer inh xt + linearLayer hh ht)
 
-rnnLayer ::
-  -- | model
-  RNNParams ->
-  -- | h_0
-  Tensor ->
-  -- | input
-  [Tensor] -> 
-  -- | (output, h_last)
-  ([Tensor], Tensor)
-rnnLayer model h0 input =
-  let hidden = scanl (rnnCell model) h0 input
-  in (tail hidden, last hidden)
+rnnLayer :: RNNParams -- ^ model
+  -> Tensor       -- ^ h_0 of shape [hiddenDim]
+  -> Maybe Double -- ^ dropout
+  -> Tensor     -- ^ input tensor of shape [seqLen, inputDim]
+  -> (Tensor, Tensor) -- ^ (output, h_last) of shape [seqLen, hiddenDim] and [hiddenDim]
+rnnLayer model h0 dropoutProb input =
+  let dropoutLayer = case dropoutProb of
+                       Just prob -> unsafePerformIO . (dropout prob True)
+                       Nothing -> id
+      hidden = unstack $ dropoutLayer $ stack (Dim 0) $ scanl (rnnCell model) h0 $ unstack input
+  in (stack (Dim 0) $ tail hidden, last hidden)
