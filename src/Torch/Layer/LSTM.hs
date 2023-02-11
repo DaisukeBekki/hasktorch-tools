@@ -36,7 +36,7 @@ data LstmHypParams = LstmHypParams {
   , numLayers :: Int     -- ^ Number of recurrent layers
   , hasBias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
   -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
-    , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
+  , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
