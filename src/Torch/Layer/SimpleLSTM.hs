@@ -10,7 +10,6 @@ import GHC.Generics              --base
 import Torch.Tensor  (Tensor(..))
 import Torch.Device  (Device(..))
 import Torch.NN      (Parameterized(..),Randomizable(..),sample)
-
 -- hasktorch-tools
 import qualified Torch.Layer.LSTM as LSTM
 
@@ -38,8 +37,8 @@ instance Randomizable LstmHypParams LstmParams where
       <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional hiddenSize numLayers)
 
 lstmLayers :: LstmParams -- ^ params
-  -> Maybe Double 
+  -> Maybe Double -- ^ dropout
   -> Tensor       -- ^ an input tensor of shape (L,H_in)
   -> Tensor       -- ^ [his] of shape (L,D*H_out)
-lstmLayers LstmParams{..} dropoutProb = 
-  LSTM.lstmLayers lstmParams (LSTM.toDependentTensors initialStatesParams) dropoutProb
+lstmLayers LstmParams{..} = 
+  LSTM.lstmLayers lstmParams (LSTM.toDependentTensors initialStatesParams) 

@@ -133,7 +133,7 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs =
       (dnumLayers:(hiddenSize:_)) = shape h0
       bidirectional | dnumLayers == numLayers * 2 = True
                     | dnumLayers == numLayers = False
-                    | otherwise = False
+                    | otherwise = False -- ここはエラーメッセージを出すべきかどうか
       (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
                     then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..numLayers]]
                     else [sliceDim 0 i (i+1) 1 h0 | i <- [0..numLayers]]
