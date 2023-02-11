@@ -64,10 +64,12 @@ library:
   - Torch.Layer.NonLinear
   - Torch.Layer.MLP
   - Torch.Layer.RNN
+#  - Torch.Layer.ProtoType.LSTM
   - Torch.Layer.LSTM
   - Torch.Layer.SimpleLSTM
   - Torch.Layer.ProtoType.RNN
   - Torch.Layer.ProtoType.LSTM
+  - Torch.Layer.ProtoType.Transformer
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
   - Torch.Tensor.Util

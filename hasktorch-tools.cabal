@@ -3,8 +3,6 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: add34cc83dbafac32c97172bdc06927ade56c1ca5a70c327bed3dc5ad827e9a9
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -39,6 +37,7 @@ library
       Torch.Layer.SimpleLSTM
       Torch.Layer.ProtoType.RNN
       Torch.Layer.ProtoType.LSTM
+      Torch.Layer.ProtoType.Transformer
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
       Torch.Tensor.Util
