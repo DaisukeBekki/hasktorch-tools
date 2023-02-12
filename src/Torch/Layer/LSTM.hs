@@ -98,6 +98,7 @@ instance Randomizable LstmHypParams LstmParams where
             Nothing -> Nothing)
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
+-- | （lstmLayersのサブルーチン。エクスポートはしていない）
 -- | scanl' :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
   -> Int                -- ^ hidden_size 
@@ -111,7 +112,7 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = unsafePerformIO $ do
   if isBiLSTM -- check the well-formedness of the shapes of h0 and c0
     then do -- the case of BiLSTM
       unless ((h0shape == [2,stateDim]) && (c0shape == [2,stateDim])) $ -- check the input shape
-        ioError $ userError $ "illegal BiLSTM shape of h0 or c0: " ++ (show h0shape) ++ " or " ++ (show c0shape)
+        ioError $ userError $ "illegal shape of h0 or c0 for BiLSTM: " ++ (show h0shape) ++ " or " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) -- pick the first (h0,c0) pair for the forward cells
           h0c0b = (select 0 1 h0, select 0 1 c0) -- pick the second (h0,c0) pair for the backward cells
           forwardLayer = fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- removing (h0,c0) by tail
@@ -119,10 +120,11 @@ singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = unsafePerformIO $ do
       return $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip forwardLayer backwardLayer
     else do -- the case of LSTM
       unless ((h0shape == [1,stateDim]) && (c0shape == [1,stateDim])) $ -- check the input shape
-        ioError $ userError $ "illegal LSTM shape of h0 or c0: " ++ (show h0shape) ++ " or " ++ (show c0shape)
+        ioError $ userError $ "illegal shape of h0 or c0 for LSTM: " ++ (show h0shape) ++ " or " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
       return $ fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- | (c0,h0)は除くためtailを取る
 
+-- | LSTM layerのメイン関数
 lstmLayers :: LstmParams      -- ^ parameters (=model)
   -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*numLayers,hiddenSize)
   -> Maybe Double    -- ^ introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.

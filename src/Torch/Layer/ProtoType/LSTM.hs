@@ -1,5 +1,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 
+{-
+古い実装。過去のバージョンが使いたいときのみ使うこと。
+-}
+
 module Torch.Layer.ProtoType.LSTM (
   LstmHypParams(..),
   LstmParams(..),

@@ -1,5 +1,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 
+{-
+h0,c0をLSTMのモデルに含んでしまうバージョン
+h0,c0を別途初期化するのが面倒な場合はこちらを使用する。
+Torch.Layer.LSTMの関数を呼び出して実装しているので内部の設計は同じ。
+-}
+
 module Torch.Layer.SimpleLSTM (
   LstmHypParams(..)
   , LstmParams(..)
