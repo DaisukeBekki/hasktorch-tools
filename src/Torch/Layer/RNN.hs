@@ -35,7 +35,7 @@ instance Randomizable RNNHypParams RNNParams where
       <$> sample (LinearHypParams dev True inputDim hiddenDim)
       <*> sample (LinearHypParams dev True hiddenDim hiddenDim)
 
-rnnCell ::
+rnnCell :: 
   RNNParams ->
   -- h_t-1
   Tensor  ->
@@ -47,9 +47,9 @@ rnnCell RNNParams {..} ht xt =
   Torch.tanh ( linearLayer inh xt + linearLayer hh ht)
 
 rnnLayer :: RNNParams -- ^ model
-  -> Tensor       -- ^ h_0 of shape [hiddenDim]
-  -> Maybe Double -- ^ dropout
-  -> Tensor     -- ^ input tensor of shape [seqLen, inputDim]
+  -> Tensor           -- ^ h_0 of shape [hiddenDim]
+  -> Maybe Double     -- ^ dropout
+  -> Tensor           -- ^ input tensor of shape [seqLen, inputDim]
   -> (Tensor, Tensor) -- ^ (output, h_last) of shape [seqLen, hiddenDim] and [hiddenDim]
 rnnLayer model h0 dropoutProb input =
   let dropoutLayer = case dropoutProb of
