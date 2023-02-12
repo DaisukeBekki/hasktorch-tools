@@ -58,7 +58,7 @@ jLstmLayer JLstmParams{..} dev oneHot dropoutProb text = do
       w_emb_layer = map (\w -> linearLayer wEmbParams $ asTensor'' dev $ oneHot w)
       lstm_layers = lstmLayers lstmParams dropoutProb
       mlp_layer = mlpLayer mlpParams 
-  return $ ((unstack . mlp_layer . lstm_layers . (stack (Dim 0)) . w_emb_layer) word_infos,
+  return $ ((unstack . mlp_layer . fst . lstm_layers . (stack (Dim 0)) . w_emb_layer) word_infos,
            map (\(surfaceForm,_,_) -> surfaceForm) word_infos)
 
 main :: IO ()

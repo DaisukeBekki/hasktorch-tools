@@ -45,6 +45,6 @@ instance Randomizable LstmHypParams LstmParams where
 lstmLayers :: LstmParams -- ^ params
   -> Maybe Double -- ^ dropout
   -> Tensor       -- ^ an input tensor of shape (L,H_in)
-  -> Tensor       -- ^ [his] of shape (L,D*H_out)
+  -> (Tensor,(Tensor,Tensor)) -- ^ [his] of shape (L,D*H_out)
 lstmLayers LstmParams{..} = 
   LSTM.lstmLayers lstmParams (LSTM.toDependentTensors initialStatesParams) 

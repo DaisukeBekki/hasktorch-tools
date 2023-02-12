@@ -5,9 +5,9 @@
 module Torch.Layer.LSTM (
   LstmHypParams(..)
   , LstmParams(..)
+  , lstmLayers
   , InitialStatesHypParams(..)
   , InitialStatesParams(..)
-  , lstmLayers
   , toDependentTensors
   ) where 
 
@@ -40,10 +40,10 @@ data LstmHypParams = LstmHypParams {
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
-    forgetGate :: LinearParams,
-    inputGate :: LinearParams,
-    candidateGate :: LinearParams,
-    outputGate :: LinearParams
+    forgetGate :: LinearParams
+    , inputGate :: LinearParams
+    , candidateGate :: LinearParams
+    , outputGate :: LinearParams
     } deriving (Show, Generic)
 instance Parameterized SingleLstmParams
 
@@ -63,14 +63,41 @@ lstmCell SingleLstmParams{..} (ht,ct) xt =
   where -- | HACK : Torch.Functional.tanhとexpが `Segmentation fault`になるため
     tanh' x = 2 * (sigmoid $ 2 * x) - 1
 
+-- | inputのlistから、(cellState,hiddenState=output)のリストを返す
+-- | （lstmLayersのサブルーチン。外部から使う想定ではない）
+-- | scanl'の型メモ :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
+singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
+  -> Int                -- ^ stateDim (=hiddenDim)
+  -> SingleLstmParams   -- ^ params
+  -> (Tensor,Tensor)    -- ^ A pair (h0,c0): shape [1,stateDim] for one-directional and [2,stateDim] for BiLSTM
+  -> Tensor             -- ^ an input tensor of shape [seqLen,inputDim] for the 1st-layer and [seqLen,stateDim] for the rest
+  -> (Tensor,Tensor)    -- ^ an output pair of shape ([seqLen,2*stateDim], [seqLen,2*stateDim]) for BiLSTM and ([seqLen,stateDim],[seqLen,stateDim]) for LSTM
+singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafePerformIO $ do
+  let h0shape = shape h0
+      c0shape = shape c0 
+  if bidirectional -- check the well-formedness of the shapes of h0 and c0
+    then do -- the case of BiLSTM
+      unless (h0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of h0 for BiLSTM: " ++ (show h0shape) 
+      unless (c0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of c0 for BiLSTM: " ++ (show c0shape)
+      let h0c0f = (select 0 0 h0, select 0 0 c0) -- pick the first (h0,c0) pair for the forward cells
+          h0c0b = (select 0 1 h0, select 0 1 c0) -- pick the second (h0,c0) pair for the backward cells
+          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- removing (h0,c0) by tail
+          (hsBackward,csBackward) = unzip $ init $ scanr (flip $ lstmCell singleLstmParams) h0c0b $ unstack inputs -- removing (h0,c0) by init
+          merge = \fTensor bTensor -> stack (Dim 0) $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip fTensor bTensor
+      return (merge hsForward hsBackward, merge csForward csBackward)
+    else do -- the case of LSTM
+      unless (h0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of h0 for LSTM: " ++ (show h0shape) 
+      unless (c0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of c0 for LSTM: " ++ (show c0shape)
+      let h0c0f = (select 0 0 h0, select 0 0 c0) 
+      return $ (\(f,b) -> (stack (Dim 0) f, stack (Dim 0) b)) $ unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- | (c0,h0)は除くためtailを取る
+
 data LstmParams = LstmParams {
-  firstLstmParams :: SingleLstmParams -- ^ a model for the first LSTM layer
+  firstLstmParams :: SingleLstmParams    -- ^ a model for the first LSTM layer
   , restLstmParams :: [SingleLstmParams] -- ^ models for the rest of LSTM layers
-  , projParams :: (Maybe LinearParams)
+  , projParams :: (Maybe LinearParams)   -- ^ a model for the projection layer
   } deriving (Show, Generic)
 instance Parameterized LstmParams
 
--- (makeIndependent =<< randnIO' dev [c_Dim]) 
 instance Randomizable LstmHypParams LstmParams where
   sample LstmHypParams{..} = do
     let xDim = inputSize
@@ -97,40 +124,13 @@ instance Randomizable LstmHypParams LstmParams where
             Just projDim -> Just $ sample $ LinearHypParams dev True oDim projDim
             Nothing -> Nothing)
 
--- | inputのlistから、(cellState,hiddenState=output)のリストを返す
--- | （lstmLayersのサブルーチン。エクスポートはしていない）
--- | scanl' :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
-singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
-  -> Int                -- ^ hidden_size 
-  -> SingleLstmParams   -- ^ params
-  -> (Tensor,Tensor)    -- ^ A pair (h0,c0) of shape (hidden_size) or (2,hidden_size)
-  -> [Tensor]           -- ^ an input layer
-  -> [Tensor]           -- ^ [forward_hi] or [forward_hi+backward_hi]
-singleLstmLayer isBiLSTM stateDim params (h0,c0) inputs = unsafePerformIO $ do
-  let h0shape = shape h0
-      c0shape = shape c0 
-  if isBiLSTM -- check the well-formedness of the shapes of h0 and c0
-    then do -- the case of BiLSTM
-      unless ((h0shape == [2,stateDim]) && (c0shape == [2,stateDim])) $ -- check the input shape
-        ioError $ userError $ "illegal shape of h0 or c0 for BiLSTM: " ++ (show h0shape) ++ " or " ++ (show c0shape)
-      let h0c0f = (select 0 0 h0, select 0 0 c0) -- pick the first (h0,c0) pair for the forward cells
-          h0c0b = (select 0 1 h0, select 0 1 c0) -- pick the second (h0,c0) pair for the backward cells
-          forwardLayer = fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- removing (h0,c0) by tail
-          backwardLayer = fst $ unzip $ init $ scanr (flip $ lstmCell params) h0c0b inputs -- removing (h0,c0) by init
-      return $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip forwardLayer backwardLayer
-    else do -- the case of LSTM
-      unless ((h0shape == [1,stateDim]) && (c0shape == [1,stateDim])) $ -- check the input shape
-        ioError $ userError $ "illegal shape of h0 or c0 for LSTM: " ++ (show h0shape) ++ " or " ++ (show c0shape)
-      let h0c0f = (select 0 0 h0, select 0 0 c0) 
-      return $ fst $ unzip $ tail $ scanl' (lstmCell params) h0c0f inputs -- | (c0,h0)は除くためtailを取る
-
 -- | LSTM layerのメイン関数
-lstmLayers :: LstmParams      -- ^ parameters (=model)
-  -> (Tensor,Tensor) -- ^ a pair of initial tensors: (D*numLayers,hiddenSize)
+lstmLayers :: LstmParams -- ^ parameters (=model)
+  -> (Tensor,Tensor) -- ^ a pair of initial tensors: [D*numLayers,hiddenSize]
   -> Maybe Double    -- ^ introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
-  -> Tensor          -- ^ an input tensor of shape (seqLen,inputSize)
-  -> Tensor          -- ^ [h_i] of shape (seqLen,D*hiddenSize)
-lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = 
+  -> Tensor          -- ^ an input tensor of shape [seqLen,inputSize]
+  -> (Tensor,(Tensor,Tensor)) -- ^ an output of shape ([seqLen,projSize],([seqLen,D*hiddenSize],[seqLen,D*hiddenSize]) 
+lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
   let numLayers = length restLstmParams + 1
       (dnumLayers:(hiddenSize:_)) = shape h0
       bidirectional | dnumLayers == numLayers * 2 = True
@@ -147,13 +147,15 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs =
       dropoutLayer = case dropoutProb of
                        Just prob -> unsafePerformIO . (dropout prob True)
                        Nothing -> id
-      stackedLayers = \inputs -> foldl' (\hs nextLayer -> ((stack (Dim 0)) . nextLayer . unstack . dropoutLayer) hs)
-                                    inputs
-                                    restOfLayers
+      stackedLayers = \inputTensor -> foldl' 
+                                        (\hscs nextLayer -> (nextLayer . dropoutLayer . fst) hscs)
+                                        (firstLayer inputTensor)
+                                        restOfLayers
       projLayer = case projParams of
                     Just projP -> (stack (Dim 0)) . map (linearLayer projP) . unstack
+--                    Just projP -> linearLayer projP . reshape [] --broadcasting [oDim,projDim] to [seqLen,oDim]
                     Nothing -> id
-  in (projLayer . stackedLayers . (stack (Dim 0)) . firstLayer . unstack) inputs
+  return $ (projLayer $ fst $ stackedLayers inputs, stackedLayers inputs)
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device

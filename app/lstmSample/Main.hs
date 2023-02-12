@@ -23,7 +23,7 @@ main = do
   lstmParams <- sample $ LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers True (Just projDim)
   inputs <- randnIO' dev [seqLen,inputDim]
   gt     <- randnIO' dev [seqLen,projDim]
-  let lstmOut = lstmLayers lstmParams (toDependentTensors c0h0Params) (Just 0.5) inputs
+  let lstmOut = fst $ lstmLayers lstmParams (toDependentTensors c0h0Params) (Just 0.5) inputs
       loss = mseLoss lstmOut gt
   u <- update lstmParams GD loss 5e-1
   print u
