@@ -11,12 +11,14 @@ module Torch.Layer.Linear (
   ) where  
 
 import GHC.Generics          --base
-import Data.List             (singleton)
+import Data.List             (singleton) --base
+--hasktorch
 import Torch.Tensor          (Tensor(..),toCPU)
-import Torch.Functional      (matmul,squeezeAll)
+import Torch.Functional      (matmul)
 import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd        (IndependentTensor(..),makeIndependent)
+--hasktorch-tools
 import Torch.Tensor.TensorFactories (asTensor'',randintIO')
 --import Torch.Tensor.Initializers    (xavierUniform')
 
@@ -53,9 +55,11 @@ instance Show LinearParams where
          Just bias' -> "\nBias:\n" ++ (show $ toCPU $ toDependent bias')
          Nothing    -> "" 
     
-linearLayer :: LinearParams -> Tensor -> Tensor
+linearLayer :: LinearParams -- ^ model
+  -> Tensor -- ^ input tensor of shape [batchSize, inputDim, 1]
+  -> Tensor -- ^ output tensor of shape [batchSize, outputDim, 1]
 linearLayer LinearParams{..} input =
   case bias of
-    Just bias' -> squeezeAll $ ((toDependent weight) `matmul` input) + (toDependent bias')
-    Nothing -> squeezeAll $ ((toDependent weight) `matmul` input)
+    Just bias' -> ((toDependent weight) `matmul` input) + (toDependent bias')
+    Nothing -> ((toDependent weight) `matmul` input)
 
