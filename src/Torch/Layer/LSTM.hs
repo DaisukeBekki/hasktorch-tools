@@ -155,7 +155,8 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
                     Just projP -> (stack (Dim 0)) . map (linearLayer projP) . unstack
 --                    Just projP -> linearLayer projP . reshape [] --broadcasting [oDim,projDim] to [seqLen,oDim]
                     Nothing -> id
-  return $ (projLayer $ fst $ stackedLayers inputs, stackedLayers inputs)
+      outputTensors = stackedLayers inputs
+  return $ (projLayer $ fst outputTensors, outputTensors)
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device
