@@ -19,7 +19,7 @@ import Control.Monad (forM,unless)     --base
 import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
 import Torch.Tensor       (Tensor(..),shape,select,sliceDim)
-import Torch.Functional   (Dim(..),sigmoid,cat,stack,dropout)
+import Torch.Functional   (Dim(..),add,sigmoid,cat,stack,dropout)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
 import Torch.Autograd (IndependentTensor(..),makeIndependent)
@@ -35,8 +35,8 @@ data LstmHypParams = LstmHypParams {
   , hiddenSize :: Int -- ^ The number of features in the hidden state h
   , numLayers :: Int     -- ^ Number of recurrent layers
   , hasBias :: Bool  -- ^ If False, then the layer does not use bias weights b_ih and b_hh.
-  -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
   , projSize :: Maybe Int -- ^ If > 0, will use LSTM with projections of corresponding size.
+  -- , batch_first :: Bool -- ^ If True, then the input and output tensors are provided as (batch, seq, feature) instead of (seq, batch, feature).
   } deriving (Eq, Show)
 
 data SingleLstmParams = SingleLstmParams {
@@ -44,6 +44,7 @@ data SingleLstmParams = SingleLstmParams {
     , inputGate :: LinearParams
     , candidateGate :: LinearParams
     , outputGate :: LinearParams
+    , projGate :: Maybe LinearParams   -- ^ a model for the projection layer
     } deriving (Show, Generic)
 instance Parameterized SingleLstmParams
 
@@ -67,14 +68,18 @@ lstmCell SingleLstmParams{..} (ht,ct) xt =
 -- | （lstmLayersのサブルーチン。外部から使う想定ではない）
 -- | scanl'の型メモ :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
-  -> Int                -- ^ stateDim (=hiddenDim)
+  -> Int                -- ^ stateDim (=hDim)
   -> SingleLstmParams   -- ^ params
-  -> (Tensor,Tensor)    -- ^ A pair (h0,c0): shape [1,stateDim] for one-directional and [2,stateDim] for BiLSTM
-  -> Tensor             -- ^ an input tensor of shape [seqLen,inputDim] for the 1st-layer and [seqLen,stateDim] for the rest
-  -> (Tensor,Tensor)    -- ^ an output pair of shape ([seqLen,2*stateDim], [seqLen,2*stateDim]) for BiLSTM and ([seqLen,stateDim],[seqLen,stateDim]) for LSTM
+  -> (Tensor,Tensor)    -- ^ A pair (h0,c0): shape [1,hDim] for one-directional and [2,hDim] for BiLSTM
+  -> Tensor             -- ^ an input tensor of shape [seqLen,iDim] for the 1st-layer and [seqLen,oDim] for the rest
+  -> (Tensor,(Tensor,Tensor)) -- ^ an output pair of shape ([seqLen,oDim],([D,oDim],[D,cDim]))
 singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafePerformIO $ do
   let h0shape = shape h0
       c0shape = shape c0 
+      projLayer = case projGate singleLstmParams of
+                    Just projG -> (stack (Dim 0)) . map (linearLayer projG) . unstack
+--                  Just projG -> linearLayer projP . reshape [] --broadcasting [oDim,projDim] to [seqLen,oDim]
+                    Nothing -> id
   if bidirectional -- check the well-formedness of the shapes of h0 and c0
     then do -- the case of BiLSTM
       unless (h0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of h0 for BiLSTM: " ++ (show h0shape) 
@@ -83,18 +88,22 @@ singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafeP
           h0c0b = (select 0 1 h0, select 0 1 c0) -- pick the second (h0,c0) pair for the backward cells
           (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- removing (h0,c0) by tail
           (hsBackward,csBackward) = unzip $ init $ scanr (flip $ lstmCell singleLstmParams) h0c0b $ unstack inputs -- removing (h0,c0) by init
-          merge = \fTensor bTensor -> stack (Dim 0) $ map (\(f,b)-> cat (Dim 0) [f,b]) $ zip fTensor bTensor
-      return (merge hsForward hsBackward, merge csForward csBackward)
+          merge = \f b -> stack (Dim 0) $ map (uncurry add) $ zip f b
+          hlast = stack (Dim 0) [last hsForward, head hsBackward]
+          clast = stack (Dim 0) [last csForward, head csBackward]
+      return (projLayer $ merge hsForward hsBackward, (hlast, clast))
     else do -- the case of LSTM
       unless (h0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of h0 for LSTM: " ++ (show h0shape) 
       unless (c0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of c0 for LSTM: " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
-      return $ (\(f,b) -> (stack (Dim 0) f, stack (Dim 0) b)) $ unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- | (c0,h0)は除くためtailを取る
+          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- | (c0,h0)は除くためtailを取る
+          hlast = last hsForward
+          clast = last csForward
+      return (projLayer $ stack (Dim 0) hsForward, (hlast, clast))
 
 data LstmParams = LstmParams {
   firstLstmParams :: SingleLstmParams    -- ^ a model for the first LSTM layer
   , restLstmParams :: [SingleLstmParams] -- ^ models for the rest of LSTM layers
-  , projParams :: (Maybe LinearParams)   -- ^ a model for the projection layer
   } deriving (Show, Generic)
 instance Parameterized LstmParams
 
@@ -104,7 +113,9 @@ instance Randomizable LstmHypParams LstmParams where
         hDim = hiddenSize
         cDim = hiddenSize
         xh1Dim = xDim + hDim
-        oDim = if bidirectional then 2 * hDim else hDim
+        oDim = case projSize of
+                 Just projDim -> projDim
+                 Nothing -> hDim
         xh2Dim = oDim + hDim
     LstmParams
       <$> (SingleLstmParams
@@ -112,6 +123,9 @@ instance Randomizable LstmHypParams LstmParams where
             <*> sample (LinearHypParams dev hasBias xh1Dim cDim) -- inputGate
             <*> sample (LinearHypParams dev hasBias xh1Dim cDim) -- candGate
             <*> sample (LinearHypParams dev hasBias xh1Dim hDim) -- outputGate
+            <*> (sequence $ case projSize of 
+                  Just projDim -> Just $ sample $ LinearHypParams dev True hDim projDim
+                  Nothing -> Nothing)
             )
       <*> forM [2..numLayers] (\_ ->
         SingleLstmParams 
@@ -119,10 +133,10 @@ instance Randomizable LstmHypParams LstmParams where
           <*> sample (LinearHypParams dev hasBias xh2Dim cDim)
           <*> sample (LinearHypParams dev hasBias xh2Dim cDim)
           <*> sample (LinearHypParams dev hasBias xh2Dim hDim)
+          <*> (sequence $ case projSize of 
+                Just projDim -> Just $ sample $ LinearHypParams dev True hDim projDim
+                Nothing -> Nothing)
           )
-      <*> (sequence $ case projSize of 
-            Just projDim -> Just $ sample $ LinearHypParams dev True oDim projDim
-            Nothing -> Nothing)
 
 -- | LSTM layerのメイン関数
 lstmLayers :: LstmParams -- ^ parameters (=model)
@@ -147,16 +161,14 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
       dropoutLayer = case dropoutProb of
                        Just prob -> unsafePerformIO . (dropout prob True)
                        Nothing -> id
-      stackedLayers = \inputTensor -> foldl' 
-                                        (\hscs nextLayer -> (nextLayer . dropoutLayer . fst) hscs)
-                                        (firstLayer inputTensor)
-                                        restOfLayers
-      projLayer = case projParams of
-                    Just projP -> (stack (Dim 0)) . map (linearLayer projP) . unstack
---                    Just projP -> linearLayer projP . reshape [] --broadcasting [oDim,projDim] to [seqLen,oDim]
-                    Nothing -> id
-      outputTensors = stackedLayers inputs
-  return $ (projLayer $ fst outputTensors, outputTensors)
+      stackedLayers = \inputTensor -> 
+                        scanl'
+                          (\ohc nextLayer -> (nextLayer . dropoutLayer . fst) ohc)
+                          (firstLayer inputTensor)
+                          restOfLayers
+      (output, hncn) = unzip $ stackedLayers inputs
+      (hn, cn) = unzip hncn
+  return (last output, (stack (Dim 0) hn, stack (Dim 0) cn))
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device

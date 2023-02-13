@@ -13,12 +13,12 @@ import Torch.Layer.LSTM   (LstmHypParams(..),InitialStatesHypParams(..),lstmLaye
 main :: IO()
 main = do
   let dev = Device CUDA 0
-      isBiLSTM = False
-      inputDim = 2
-      hiddenDim = 3
+      isBiLSTM = True
+      inputDim = 3
+      hiddenDim = 4
       numOfLayers = 3
-      projDim = 1
-      seqLen = 13
+      projDim = 2
+      seqLen = 10
   c0h0Params <- sample $ InitialStatesHypParams dev isBiLSTM hiddenDim numOfLayers 
   lstmParams <- sample $ LstmHypParams dev isBiLSTM inputDim hiddenDim numOfLayers True (Just projDim)
   inputs <- randnIO' dev [seqLen,inputDim]
