@@ -165,10 +165,17 @@ executables:
 #      - hasktorch-tools
 #      - containers >= 0.6
 tests:
-  lstmTest:
+  singleLstmLayerTest:
     main:         Main.hs
-    source-dirs:  test/lstmTest
+    source-dirs:  test/singleLstmLayerTest
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: 
       - hasktorch-tools
       - HUnit >= 1.6.0
+#  lstmTest:
+#    main:         Main.hs
+#    source-dirs:  test/lstmTest
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: 
+#      - hasktorch-tools
+#      - HUnit >= 1.6.0
