@@ -2,27 +2,30 @@
 --{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
+{- Throuout the comments, a tensor of shape [a,b,..] is written as <a,b,...> -}
+
 module Torch.Layer.LSTM (
   LstmHypParams(..)
   , LstmParams(..)
+  , singleLstmLayer
   , lstmLayers
   , InitialStatesHypParams(..)
   , InitialStatesParams(..)
   , toDependentTensors
   ) where 
 
-import Prelude hiding (tanh) 
+import Prelude hiding   (tanh) 
 import GHC.Generics              --base
-import Data.Maybe (isJust)       --base
-import Data.List (scanl',foldl',scanr) --base
-import Control.Monad (forM,unless)     --base
+import Data.Maybe       (isJust) --base
+import Data.List        (scanl',foldl',scanr) --base
+import Control.Monad    (forM,unless)     --base
 import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
-import Torch.Tensor       (Tensor(..),shape,select,sliceDim)
-import Torch.Functional   (Dim(..),add,sigmoid,cat,stack,dropout)
-import Torch.Device       (Device(..))
-import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
-import Torch.Autograd (IndependentTensor(..),makeIndependent)
+import Torch.Tensor      (Tensor(..),shape,select,sliceDim,reshape)
+import Torch.Functional  (Dim(..),add,sigmoid,cat,stack,dropout)
+import Torch.Device      (Device(..))
+import Torch.NN          (Parameterized(..),Randomizable(..),Parameter,sample)
+import Torch.Autograd    (IndependentTensor(..),makeIndependent)
 --hasktorch-tools
 import Torch.Tensor.Util (unstack)
 import Torch.Tensor.TensorFactories (randintIO')
@@ -49,9 +52,9 @@ data SingleLstmParams = SingleLstmParams {
 instance Parameterized SingleLstmParams
 
 lstmCell :: SingleLstmParams 
-  -> (Tensor,Tensor) -- ^ (ht,ct) 
-  -> Tensor          -- ^ xt
-  -> (Tensor,Tensor) -- ^ (ht',ct')
+  -> (Tensor,Tensor) -- ^ (ht,ct) of shape (<hDim>,<cDim>)
+  -> Tensor          -- ^ xt of shape <iDim/oDim>
+  -> (Tensor,Tensor) -- ^ (ht',ct') of shape (<hDim>,<cDim>)
 lstmCell SingleLstmParams{..} (ht,ct) xt =
   let xt_ht = cat (Dim 0) [xt,ht]
       ft = sigmoid $ linearLayer forgetGate $ xt_ht
@@ -68,38 +71,67 @@ lstmCell SingleLstmParams{..} (ht,ct) xt =
 -- | （lstmLayersのサブルーチン。外部から使う想定ではない）
 -- | scanl'の型メモ :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
-  -> Int                -- ^ stateDim (=hDim)
+  -> Int                -- ^ stateDim (=hDim=cDim)
   -> SingleLstmParams   -- ^ params
-  -> (Tensor,Tensor)    -- ^ A pair (h0,c0): shape [1,hDim] for one-directional and [2,hDim] for BiLSTM
-  -> Tensor             -- ^ an input tensor of shape [seqLen,iDim] for the 1st-layer and [seqLen,oDim] for the rest
-  -> (Tensor,(Tensor,Tensor)) -- ^ an output pair of shape ([seqLen,oDim],([D,oDim],[D,cDim]))
+  -> (Tensor,Tensor)    -- ^ A pair (h0,c0): <1,hDim> for one-directional and <2,hDim> for BiLSTM
+  -> Tensor             -- ^ an input tensor <seqLen,iDim> for the 1st-layer and <seqLen,oDim> for the rest
+  -> (Tensor,(Tensor,Tensor)) -- ^ an output pair (<seqLen,D * oDim>,(<D * oDim>,<D * cDim>))
 singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafePerformIO $ do
   let h0shape = shape h0
       c0shape = shape c0 
+      [seqLen,_] = shape inputs
+      d = if bidirectional then 2 else 1
       projLayer = case projGate singleLstmParams of
-                    Just projG -> (stack (Dim 0)) . map (linearLayer projG) . unstack
---                  Just projG -> linearLayer projP . reshape [] --broadcasting [oDim,projDim] to [seqLen,oDim]
-                    Nothing -> id
+                    Just projParam -> 
+                      let [oDim,_] = shape $ toDependent $ weight projParam in
+                      -- |                 <d, seqLen, hDim>           
+                      -- | reshape:     -> <d, seqLen, hDim, 1>
+                      -- | linearLayer: -> <d, seqLen, projDim, 1>
+                      -- | reshape:     -> <d, seqLen, projDim>
+                      (reshape [d,seqLen,oDim]) . (linearLayer projParam) . (reshape [d,seqLen,stateDim,1])
+                    Nothing -> id     -- | <d, seqLen, hDim>
   if bidirectional -- check the well-formedness of the shapes of h0 and c0
     then do -- the case of BiLSTM
       unless (h0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of h0 for BiLSTM: " ++ (show h0shape) 
       unless (c0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of c0 for BiLSTM: " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) -- pick the first (h0,c0) pair for the forward cells
           h0c0b = (select 0 1 h0, select 0 1 c0) -- pick the second (h0,c0) pair for the backward cells
-          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- removing (h0,c0) by tail
-          (hsBackward,csBackward) = unzip $ init $ scanr (flip $ lstmCell singleLstmParams) h0c0b $ unstack inputs -- removing (h0,c0) by init
-          merge = \f b -> stack (Dim 0) $ map (uncurry add) $ zip f b
-          hlast = stack (Dim 0) [last hsForward, head hsBackward]
-          clast = stack (Dim 0) [last csForward, head csBackward]
-      return (projLayer $ merge hsForward hsBackward, (hlast, clast))
+          -- | input          <seqLen,iDim/oDim> 
+          -- | unstack     -> [<iDim/oDim>] of length seqLen
+          -- | scanl' (..) -> [(<hDim>, <cDim>)] of length seqLen+1
+          -- | tail, init  -> [(<hDim>, <cDim>)] of length seqLen (by removing (h0,c0))
+          -- | unzip       -> ([<hDim>], [<cDim>])
+          -- | hsForward, hsBackward    -> [<hDim>] of length seqLen
+          -- | or csForward, csBackward -> [<cDim>] of length seqLen
+          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs
+          (hsBackward,csBackward) = unzip $ init $ scanr (flip $ lstmCell singleLstmParams) h0c0b $ unstack inputs
+          -- | last, head:  -> <hDim/cDim>
+          -- | [,]          -> [<hDim/cDim>] of length 2
+          -- | cat (Dim 0)  -> <2*hDim/cDim>
+          hLast = cat (Dim 0) [last hsForward, head hsBackward]
+          cLast = cat (Dim 0) [last csForward, head csBackward]
+          -- | [stack (Dim 0) _, stack (Dim 0) _]: [<seqLen, hDim>] of length 2
+          -- | stack (Dim 0): -> <2, seqLen, hDim>
+          -- | projLayer:     -> <2, seqLen, projDim/hDim>
+          -- | unstack:       -> [seqLen, projDim/hDim] of length 2
+          -- | cat (Dim 1):   -> <seqLen, 2*(oDim/hDim)>
+          output = cat (Dim 0) $ unstack $ projLayer $ stack (Dim 1) [stack (Dim 0) hsForward, stack (Dim 0) hsBackward]
+      return (output, (hLast, cLast))
     else do -- the case of LSTM
       unless (h0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of h0 for LSTM: " ++ (show h0shape) 
       unless (c0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of c0 for LSTM: " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
-          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs -- | (c0,h0)は除くためtailを取る
-          hlast = last hsForward
-          clast = last csForward
-      return (projLayer $ stack (Dim 0) hsForward, (hlast, clast))
+          (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs
+          -- | stack (Dim 0) []: <hDim/cDim> -> [<hDim/cDim>] of length 1 -> <1, hDim/cDim>
+          hLast = stack (Dim 0) [last hsForward]
+          cLast = stack (Dim 0) [last csForward]
+          -- | stack (Dim 0): [<hDim>] -> <seqLen, hDim>
+          -- | stack (Dim 1): [<seqLen, hDim>] of length 1 -> <1, seqLen, hDim>
+          -- | reshape: <1, seqLen, hDim> -> <1, seqLen, hDim, 1>
+          -- | projLayer: <1, seqLen, hDim, 1> -> <1, seqLen, oDim, 1>
+          -- | reshape: <seqLen, oDim, 1> -> <seqLen, oDim>
+          output = projLayer $ stack (Dim 1) [stack (Dim 0) hsForward]
+      return (output, (hLast, cLast))
 
 data LstmParams = LstmParams {
   firstLstmParams :: SingleLstmParams    -- ^ a model for the first LSTM layer
@@ -116,7 +148,8 @@ instance Randomizable LstmHypParams LstmParams where
         oDim = case projSize of
                  Just projDim -> projDim
                  Nothing -> hDim
-        xh2Dim = oDim + hDim
+        d = if bidirectional then 2 else 1
+        xh2Dim = (d * oDim) + hDim
     LstmParams
       <$> (SingleLstmParams
             <$> sample (LinearHypParams dev hasBias xh1Dim cDim) -- forgetGate
@@ -124,7 +157,7 @@ instance Randomizable LstmHypParams LstmParams where
             <*> sample (LinearHypParams dev hasBias xh1Dim cDim) -- candGate
             <*> sample (LinearHypParams dev hasBias xh1Dim hDim) -- outputGate
             <*> (sequence $ case projSize of 
-                  Just projDim -> Just $ sample $ LinearHypParams dev True hDim projDim
+                  Just projDim -> Just $ sample $ LinearHypParams dev hasBias hDim projDim
                   Nothing -> Nothing)
             )
       <*> forM [2..numLayers] (\_ ->
@@ -134,22 +167,24 @@ instance Randomizable LstmHypParams LstmParams where
           <*> sample (LinearHypParams dev hasBias xh2Dim cDim)
           <*> sample (LinearHypParams dev hasBias xh2Dim hDim)
           <*> (sequence $ case projSize of 
-                Just projDim -> Just $ sample $ LinearHypParams dev True hDim projDim
+                Just projDim -> Just $ sample $ LinearHypParams dev hasBias hDim projDim
                 Nothing -> Nothing)
           )
 
--- | LSTM layerのメイン関数
+-- | The main function for LSTM layers
 lstmLayers :: LstmParams -- ^ parameters (=model)
-  -> (Tensor,Tensor) -- ^ a pair of initial tensors: [D*numLayers,hiddenSize]
+  -> (Tensor,Tensor) -- ^ a pair of initial tensors: <D*numLayers,hDim>
   -> Maybe Double    -- ^ introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
-  -> Tensor          -- ^ an input tensor of shape [seqLen,inputSize]
-  -> (Tensor,(Tensor,Tensor)) -- ^ an output of shape ([seqLen,projSize],([seqLen,D*hiddenSize],[seqLen,D*hiddenSize]) 
+  -> Tensor          -- ^ an input tensor <seqLen,iDim>
+  -> (Tensor,(Tensor,Tensor)) -- ^ an output of (<seqLen,D*oDim>,(<D*numLayers,oDim>,<D*numLayers,cDim>))
 lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
   let numLayers = length restLstmParams + 1
       (dnumLayers:(hiddenSize:_)) = shape h0
-      bidirectional | dnumLayers == numLayers * 2 = True
+  unless (dnumLayers == numLayers * 2 || dnumLayers == numLayers) $ 
+    ioError $ userError $ "illegal shape of h0: dnumLayers = " ++ (show dnumLayers) ++ "\nnumLayers = " ++ (show numLayers) 
+  let bidirectional | dnumLayers == numLayers * 2 = True
                     | dnumLayers == numLayers = False
-                    | otherwise = False -- ここはエラーメッセージを出すべきかどうか
+                    | otherwise = False -- Unexpected
       (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
                     then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..numLayers]]
                     else [sliceDim 0 i (i+1) 1 h0 | i <- [0..numLayers]]
@@ -163,12 +198,12 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
                        Nothing -> id
       stackedLayers = \inputTensor -> 
                         scanl'
-                          (\ohc nextLayer -> (nextLayer . dropoutLayer . fst) ohc)
-                          (firstLayer inputTensor)
+                          (\ohc nextLayer -> nextLayer $ dropoutLayer $ fst ohc)
+                          (firstLayer inputTensor) -- (<seqLen,D * oDim>,(<D * oDim>,<D * cDim>))
                           restOfLayers
       (output, hncn) = unzip $ stackedLayers inputs
       (hn, cn) = unzip hncn
-  return (last output, (stack (Dim 0) hn, stack (Dim 0) cn))
+  return (last output, (cat (Dim 0) hn, cat (Dim 0) cn))
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device

@@ -41,13 +41,13 @@ instance Randomizable HypParams Params where
 main :: IO()
 main = do
   let dev = Device CUDA 0
-      iDim = 2
+      iDim = 3
       hDim = 4
-      isBiLstm = True
-      numOfLayers = 3
-      dropout = Just 0.5
-      projDim = Just 3
-      seqLen = 10
+      numOfLayers = 5
+      seqLen = 7
+      isBiLstm = False
+      dropout = Nothing
+      projDim = Nothing
       hypParams = HypParams dev iDim hDim isBiLstm numOfLayers dropout projDim
       d = if isBiLstm then 2 else 1
       oDim = case projDim of
@@ -56,7 +56,4 @@ main = do
   initialParams <- sample hypParams
   inputs <- randnIO' dev [seqLen,iDim]
   gt     <- randnIO' dev [seqLen,oDim]
-  let lstmOut = fst $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs
-      loss = mseLoss lstmOut gt
-  (u,_) <- update initialParams GD loss 5e-1
-  print u
+  print $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs

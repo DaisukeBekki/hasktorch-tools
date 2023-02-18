@@ -56,8 +56,8 @@ instance Show LinearParams where
          Nothing    -> "" 
     
 linearLayer :: LinearParams -- ^ model
-  -> Tensor -- ^ input tensor of shape [batchSize, inputDim, 1]
-  -> Tensor -- ^ output tensor of shape [batchSize, outputDim, 1]
+  -> Tensor -- ^ input tensor <batchSize, inputDim, 1>
+  -> Tensor -- ^ output tensor <batchSize, outputDim, 1>
 linearLayer LinearParams{..} input =
   case bias of
     Just bias' -> ((toDependent weight) `matmul` input) + (toDependent bias')
