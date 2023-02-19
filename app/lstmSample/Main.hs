@@ -56,14 +56,14 @@ main = do
       oDim = case projDim of
                Just projD -> projD
                Nothing -> hDim
-  {-
   initialParams <- sample hypParams
   inputs <- randnIO' dev [seqLen,iDim]
   gt     <- randnIO' dev [seqLen,oDim]
-  print $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs
-  -}
+  print $ lstmLayers (lParams initialParams) dropout (toDependentTensors $ iParams initialParams) inputs
+  {-
   linearParams <- sample $ LinearHypParams dev True 5 7
   inputTensor <- randnIO' dev [2,11,5]
   let output = linearLayer linearParams inputTensor
   print output
   print $ sliceDim 1 10 11 1 output
+  -}

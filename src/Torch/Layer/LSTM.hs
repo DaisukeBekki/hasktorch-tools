@@ -172,11 +172,11 @@ instance Randomizable LstmHypParams LstmParams where
 
 -- | The main function for LSTM layers
 lstmLayers :: LstmParams -- ^ parameters (=model)
-  -> (Tensor,Tensor) -- ^ a pair of initial tensors: <D*numLayers,hDim>
   -> Maybe Double    -- ^ introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout.
+  -> (Tensor,Tensor) -- ^ a pair of initial tensors: <D*numLayers,hDim>
   -> Tensor          -- ^ an input tensor <seqLen,iDim>
   -> (Tensor,(Tensor,Tensor)) -- ^ an output of (<seqLen,D*oDim>,(<D*numLayers,oDim>,<D*numLayers,cDim>))
-lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
+lstmLayers LstmParams{..} dropoutProb (h0,c0) inputs = unsafePerformIO $ do
   let numLayers = length restLstmParams + 1
       (dnumLayers:(hiddenSize:_)) = shape h0
   unless (dnumLayers == numLayers * 2 || dnumLayers == numLayers) $ 

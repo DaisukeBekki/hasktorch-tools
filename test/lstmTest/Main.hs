@@ -72,10 +72,10 @@ main = do
     initialParams <- sample hypParams
     inputs <- randnIO' dev [seqLen,iDim]
     gt     <- randnIO' dev [seqLen,d * oDim]
-    let lstmOut = fst $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs
+    let lstmOut = fst $ lstmLayers (lParams initialParams) dropout (toDependentTensors $ iParams initialParams) inputs
         loss = mseLoss lstmOut gt
     (u,_) <- update initialParams GD loss 5e-1
-    let (output, (hn, cn)) = lstmLayers (lParams u) (toDependentTensors $ iParams u) dropout inputs
+    let (output, (hn, cn)) = lstmLayers (lParams u) dropout (toDependentTensors $ iParams u) inputs
     _ <- runTestTT $ TestList [
       "A" ~: assertEqual "shape of output" [seqLen, d * oDim] (shape output),
       "B" ~: assertEqual "shape of h_n" [d * numOfLayers, oDim] (shape hn),

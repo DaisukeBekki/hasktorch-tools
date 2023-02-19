@@ -85,4 +85,4 @@ main = do
       "H" ~: assertEqual "shape of h_n" [d * oDim] (shape hn),
       "C" ~: assertEqual "shape of c_n" [d * hDim] (shape cn)
       ]
-    putStrLn "All tests done for this case.\n"
+    putStrLn "Case clear.\n"
