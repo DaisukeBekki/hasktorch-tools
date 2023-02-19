@@ -8,13 +8,14 @@ import Test.HUnit.Base    (Test(..),(~:),assertEqual) --HUnit
 import Test.HUnit.Text    (runTestTT)     --HUnit
 --hasktorch 
 import Torch.Tensor       (shape,sliceDim)
-import Torch.Functional   (mseLoss)
+import Torch.Functional   (mseLoss,matmul)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),sample)
 import Torch.Optim        (GD(..))
 --hasktorch-tools
 import Torch.Train        (update)
 import Torch.Tensor.TensorFactories (randnIO')
+import Torch.Layer.Linear (LinearHypParams(..),linearLayer)
 import Torch.Layer.LSTM   (LstmHypParams(..),InitialStatesHypParams(..),LstmParams(..),InitialStatesParams(..),singleLstmLayer,toDependentTensors)
 
 data HypParams = HypParams {
@@ -22,6 +23,7 @@ data HypParams = HypParams {
     inputDim :: Int,
     hiddenDim :: Int,
     isBiLstm ::  Bool,
+    hasBias :: Bool,
     numOfLayers :: Int,
     dropout :: Maybe Double,
     projDim :: Maybe Int
@@ -36,7 +38,7 @@ instance Parameterized Params
 instance Randomizable HypParams Params where
   sample HypParams{..} = Params
       <$> (sample $ InitialStatesHypParams dev isBiLstm hiddenDim numOfLayers)
-      <*> (sample $ LstmHypParams dev isBiLstm inputDim hiddenDim numOfLayers True projDim)
+      <*> (sample $ LstmHypParams dev isBiLstm inputDim hiddenDim numOfLayers hasBias projDim)
 
 -- | Test code to check the shapes of output tensors for the cases of
 -- |   bidirectional True/False | numOfLayers 1,2,3 | dropout on/off | projDim on/off
@@ -44,23 +46,26 @@ main :: IO()
 main = do
   let dev = Device CUDA 0
       iDim = 2
-      hDim = 4
-      isBiLstmAlt = [True]--, False]
-      numOfLayersAlt = [1]--,2,3]
-      dropoutAlt = [Nothing]--, Just 0.5]
-      projDimAlt = [Nothing]--, Just 3]
-      seqLen = 10
+      hDim = 5
+      isBiLstmAlt = [True,False]
+      hasBiasAlt = [True, False]
+      numOfLayersAlt = [1,2,3]
+      dropoutAlt = [Nothing, Just 0.5]
+      projDimAlt = [Nothing, Just 7]
+      seqLen = 11
   forM_ (do
          x <- isBiLstmAlt
-         y <- numOfLayersAlt
-         z <- dropoutAlt
-         w <- projDimAlt
-         return (x,y,z,w)) $ \(isBiLstm, numOfLayers, dropout, projDim) -> do
-    putStrLn $ "isBiLstm = " ++ (show isBiLstm)
-    putStrLn $ "numOfLayers = " ++ (show numOfLayers)
-    putStrLn $ "dropout = " ++ (show dropout)
-    putStrLn $ "projDim = " ++ (show projDim)
-    let hypParams = HypParams dev iDim hDim isBiLstm numOfLayers dropout projDim
+         y <- hasBiasAlt
+         z <- numOfLayersAlt
+         u <- dropoutAlt
+         v <- projDimAlt
+         return (x,y,z,u,v)) $ \(isBiLstm, hasBias, numOfLayers, dropout, projDim) -> do
+    putStr $ "Setting: isBiLstm = " ++ (show isBiLstm)
+    putStr $ " / hasBias = " ++ (show hasBias)
+    putStr $ " / numOfLayers = " ++ (show numOfLayers)
+    putStr $ " / dropout = " ++ (show dropout)
+    putStr $ " / projDim = " ++ (show projDim) ++ "\n\n"
+    let hypParams = HypParams dev iDim hDim isBiLstm hasBias numOfLayers dropout projDim
         d = if isBiLstm then 2 else 1
         oDim = case projDim of
                  Just projD -> projD

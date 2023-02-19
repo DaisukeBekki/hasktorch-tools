@@ -10,10 +10,12 @@ module Torch.Layer.Linear (
   linearLayer
   ) where  
 
-import GHC.Generics          --base
-import Data.List             (singleton) --base
+import GHC.Generics                       --base
+import Data.List        (singleton)       --base
+import Control.Monad    (when,unless)     --base
+import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
-import Torch.Tensor          (Tensor(..),toCPU)
+import Torch.Tensor          (Tensor(..),toCPU,shape,reshape)
 import Torch.Functional      (matmul)
 import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
@@ -40,7 +42,7 @@ instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
     let denom = asTensor'' dev $ singleton $ sqrt $ ((fromIntegral outputDim)::Float)
     m <- randintIO' dev (-1) 1 [outputDim, inputDim] 
-    b <- randintIO' dev (-1) 1 [outputDim]
+    b <- randintIO' dev (-1) 1 [outputDim, 1]
     LinearParams
       <$> makeIndependent (m / denom) -- denomでnormalize
       <*> if hasBias
@@ -54,12 +56,27 @@ instance Show LinearParams where
     ++ case bias of
          Just bias' -> "\nBias:\n" ++ (show $ toCPU $ toDependent bias')
          Nothing    -> "" 
-    
+
+debug :: Bool
+debug = True
+
+-- | Linear layer that supports broadcasting
 linearLayer :: LinearParams -- ^ model
-  -> Tensor -- ^ input tensor <batchSize, inputDim, 1>
-  -> Tensor -- ^ output tensor <batchSize, outputDim, 1>
-linearLayer LinearParams{..} input =
-  case bias of
-    Just bias' -> ((toDependent weight) `matmul` input) + (toDependent bias')
-    Nothing -> ((toDependent weight) `matmul` input)
+  -> Tensor -- ^ input tensor <..., inputDim>
+  -> Tensor -- ^ output tensor <..., outputDim>
+linearLayer LinearParams{..} input = unsafePerformIO $ do
+  --when (debug) $ print $ shape $ input
+  --when (debug) $ print $ shape $ toDependent weight
+  let inputShape = shape input
+      revshape@(inputDim:batchDims) = reverse inputShape
+      matrix = toDependent weight
+      matrixShape@(cols:(rows:_)) = shape matrix
+  unless (inputDim == rows) $ print $ 
+    "illformed input for linear layer: " ++ (show matrixShape) ++ " and " ++ (show inputShape)
+    ++ " inputDim = " ++ (show inputDim) ++ " row = " ++ (show rows)
+  let newInput = reshape (reverse (1:revshape)) input
+      rawOutput = case bias of
+                    Just bias' -> (matrix `matmul` newInput) + (toDependent bias')
+                    Nothing -> (matrix `matmul` newInput)
+  return $ reshape (reverse $ (cols:batchDims)) rawOutput
 

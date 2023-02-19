@@ -22,6 +22,7 @@ data HypParams = HypParams {
     inputDim :: Int,
     hiddenDim :: Int,
     isBiLstm ::  Bool,
+    hasBias :: Bool,
     numOfLayers :: Int,
     dropout :: Maybe Double,
     projDim :: Maybe Int
@@ -44,30 +45,33 @@ main :: IO()
 main = do
   let dev = Device CUDA 0
       iDim = 2
-      hDim = 4
+      hDim = 5
       isBiLstmAlt = [True, False]
+      hasBiasAlt = [True, False]
       numOfLayersAlt = [1,2,3]
       dropoutAlt = [Nothing, Just 0.5]
       projDimAlt = [Nothing, Just 3]
-      seqLen = 10
+      seqLen = 11
   forM_ (do
          x <- isBiLstmAlt
-         y <- numOfLayersAlt
-         z <- dropoutAlt
-         w <- projDimAlt
-         return (x,y,z,w)) $ \(isBiLstm, numOfLayers, dropout, projDim) -> do
-    putStrLn $ "isBiLstm = " ++ (show isBiLstm)
-    putStrLn $ "numOfLayers = " ++ (show numOfLayers)
-    putStrLn $ "dropout = " ++ (show dropout)
-    putStrLn $ "projDim = " ++ (show projDim)
-    let hypParams = HypParams dev iDim hDim isBiLstm numOfLayers dropout projDim
+         y <- hasBiasAlt
+         z <- numOfLayersAlt
+         u <- dropoutAlt
+         v <- projDimAlt
+         return (x,y,z,u,v)) $ \(isBiLstm, hasBias, numOfLayers, dropout, projDim) -> do
+    putStr $ "Setting: isBiLstm = " ++ (show isBiLstm)
+    putStr $ " / hasBias = " ++ (show hasBias)
+    putStr $ " / numOfLayers = " ++ (show numOfLayers)
+    putStr $ " / dropout = " ++ (show dropout)
+    putStr $ " / projDim = " ++ (show projDim) ++ "\n\n"
+    let hypParams = HypParams dev iDim hDim isBiLstm hasBias numOfLayers dropout projDim
         d = if isBiLstm then 2 else 1
         oDim = case projDim of
                  Just projD -> projD
                  Nothing -> hDim
     initialParams <- sample hypParams
     inputs <- randnIO' dev [seqLen,iDim]
-    gt     <- randnIO' dev [seqLen,oDim]
+    gt     <- randnIO' dev [seqLen,d * oDim]
     let lstmOut = fst $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs
         loss = mseLoss lstmOut gt
     (u,_) <- update initialParams GD loss 5e-1
@@ -77,4 +81,4 @@ main = do
       "B" ~: assertEqual "shape of h_n" [d * numOfLayers, oDim] (shape hn),
       "C" ~: assertEqual "shape of c_n" [d * numOfLayers, hDim] (shape cn)
       ]
-    putStrLn "All tests done for this case.\n"
+    putStrLn "Case clear.\n"

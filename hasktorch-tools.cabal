@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9e8aadacd6d5d00825f22323dfe3c3767483977669036c795c927399714636f
+-- hash: 196c4bb6bfed0afd18a04a0c0485b95291fd638a78e829e3de226cf38ab422bc
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -205,13 +205,13 @@ executable xor-mlp
     , zlib >=0.6
   default-language: Haskell2010
 
-test-suite singleLstmLayerTest
+test-suite lstmTest
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
       Paths_hasktorch_tools
   hs-source-dirs:
-      test/singleLstmLayerTest
+      test/lstmTest
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit >=1.6.0

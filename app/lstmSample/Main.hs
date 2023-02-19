@@ -5,14 +5,17 @@ module Main where
 import GHC.Generics               --base
 import Control.Monad      (forM_) --base
 --hasktorch 
-import Torch.Tensor       (shape)
+import Torch.Tensor       (shape,sliceDim)
 import Torch.Functional   (mseLoss)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),sample)
 import Torch.Optim        (GD(..))
+import Torch.Autograd     (IndependentTensor(..))
 --hasktorch-tools
 import Torch.Train        (update)
+import Torch.Functional   (matmul)
 import Torch.Tensor.TensorFactories (randnIO')
+import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.LSTM   (LstmHypParams(..),InitialStatesHypParams(..),LstmParams(..),InitialStatesParams(..),lstmLayers,toDependentTensors)
 
 data HypParams = HypParams {
@@ -53,7 +56,14 @@ main = do
       oDim = case projDim of
                Just projD -> projD
                Nothing -> hDim
+  {-
   initialParams <- sample hypParams
   inputs <- randnIO' dev [seqLen,iDim]
   gt     <- randnIO' dev [seqLen,oDim]
   print $ lstmLayers (lParams initialParams) (toDependentTensors $ iParams initialParams) dropout inputs
+  -}
+  linearParams <- sample $ LinearHypParams dev True 5 7
+  inputTensor <- randnIO' dev [2,11,5]
+  let output = linearLayer linearParams inputTensor
+  print output
+  print $ sliceDim 1 10 11 1 output

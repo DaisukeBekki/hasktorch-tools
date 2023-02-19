@@ -75,21 +75,15 @@ singleLstmLayer :: Bool -- ^ True if BiLSTM, False otherwise
   -> SingleLstmParams   -- ^ params
   -> (Tensor,Tensor)    -- ^ A pair (h0,c0): <1,hDim> for one-directional and <2,hDim> for BiLSTM
   -> Tensor             -- ^ an input tensor <seqLen,iDim> for the 1st-layer and <seqLen,oDim> for the rest
-  -> (Tensor,(Tensor,Tensor)) -- ^ an output pair (<seqLen,D * oDim>,(<D * oDim>,<D * cDim>))
+  -> (Tensor,(Tensor,Tensor)) -- ^ an output pair (<seqLen,D*oDim>,(<D*oDim>,<D*cDim>))
 singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafePerformIO $ do
   let h0shape = shape h0
       c0shape = shape c0 
       [seqLen,_] = shape inputs
       d = if bidirectional then 2 else 1
       projLayer = case projGate singleLstmParams of
-                    Just projParam -> 
-                      let [oDim,_] = shape $ toDependent $ weight projParam in
-                      -- |                 <d, seqLen, hDim>           
-                      -- | reshape:     -> <d, seqLen, hDim, 1>
-                      -- | linearLayer: -> <d, seqLen, projDim, 1>
-                      -- | reshape:     -> <d, seqLen, projDim>
-                      (reshape [d,seqLen,oDim]) . (linearLayer projParam) . (reshape [d,seqLen,stateDim,1])
-                    Nothing -> id     -- | <d, seqLen, hDim>
+                    Just projParam -> linearLayer projParam -- | <d, seqLen, projDim>
+                    Nothing -> id                           -- | <d, seqLen, hDim>
   if bidirectional -- check the well-formedness of the shapes of h0 and c0
     then do -- the case of BiLSTM
       unless (h0shape == [2,stateDim]) $ ioError $ userError $ "illegal shape of h0 for BiLSTM: " ++ (show h0shape) 
@@ -105,32 +99,37 @@ singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafeP
           -- | or csForward, csBackward -> [<cDim>] of length seqLen
           (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs
           (hsBackward,csBackward) = unzip $ init $ scanr (flip $ lstmCell singleLstmParams) h0c0b $ unstack inputs
-          -- | last, head:  -> <hDim/cDim>
-          -- | [,]          -> [<hDim/cDim>] of length 2
-          -- | cat (Dim 0)  -> <2*hDim/cDim>
-          hLast = cat (Dim 0) [last hsForward, head hsBackward]
+          -- | last, head:  -> <cDim>
+          -- | [,]          -> [<cDim>] of length 2
+          -- | cat (Dim 0)  -> <2*cDim>
           cLast = cat (Dim 0) [last csForward, head csBackward]
-          -- | [stack (Dim 0) _, stack (Dim 0) _]: [<seqLen, hDim>] of length 2
+          -- | [stack (Dim 0) _, stack (Dim 0) _]: [<seqLen, hDim>] of length 2sta
           -- | stack (Dim 0): -> <2, seqLen, hDim>
           -- | projLayer:     -> <2, seqLen, projDim/hDim>
-          -- | unstack:       -> [seqLen, projDim/hDim] of length 2
+          -- | unstack:       -> [<seqLen, projDim/hDim>] of length 2
           -- | cat (Dim 1):   -> <seqLen, 2*(oDim/hDim)>
-          output = cat (Dim 0) $ unstack $ projLayer $ stack (Dim 1) [stack (Dim 0) hsForward, stack (Dim 0) hsBackward]
+          output = cat (Dim 1) $ unstack $ projLayer $ stack (Dim 0) [stack (Dim 0) hsForward, stack (Dim 0) hsBackward]
+          -- | sliceDim 0 (seqLen-1) seqLen 1      -> <1, 2*(oDim/hDim)>
+          -- | (\o -> reshape (tail $ shape o) o): -> <2*(oDim/hDim)>
+          hLast = (\o -> reshape (tail $ shape o) o) $ sliceDim 0 (seqLen-1) seqLen 1 output
       return (output, (hLast, cLast))
     else do -- the case of LSTM
       unless (h0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of h0 for LSTM: " ++ (show h0shape) 
       unless (c0shape == [1,stateDim]) $ ioError $ userError $ "illegal shape of c0 for LSTM: " ++ (show c0shape)
       let h0c0f = (select 0 0 h0, select 0 0 c0) 
           (hsForward,csForward) = unzip $ tail $ scanl' (lstmCell singleLstmParams) h0c0f $ unstack inputs
-          -- | stack (Dim 0) []: <hDim/cDim> -> [<hDim/cDim>] of length 1 -> <1, hDim/cDim>
-          hLast = stack (Dim 0) [last hsForward]
-          cLast = stack (Dim 0) [last csForward]
-          -- | stack (Dim 0): [<hDim>] -> <seqLen, hDim>
-          -- | stack (Dim 1): [<seqLen, hDim>] of length 1 -> <1, seqLen, hDim>
-          -- | reshape: <1, seqLen, hDim> -> <1, seqLen, hDim, 1>
-          -- | projLayer: <1, seqLen, hDim, 1> -> <1, seqLen, oDim, 1>
-          -- | reshape: <seqLen, oDim, 1> -> <seqLen, oDim>
-          output = projLayer $ stack (Dim 1) [stack (Dim 0) hsForward]
+          -- | last:             -> <cDim>
+          -- | []:               -> [<cDim>] of length 1
+          -- | stack (Dim 0) []: -> <1, cDim>
+          -- | \o -> reshape (tail $ shape o) o: -> <cDim>
+          cLast = (\o -> reshape (tail $ shape o) o) $ stack (Dim 0) [last csForward]
+          -- | hsForward:        [<hDim>]
+          -- | stack (Dim 0): -> <seqLen, hDim>
+          -- | projLayer:     -> <seqLen, oDim/hDim>
+          output = projLayer $ stack (Dim 0) hsForward
+          -- | sliceDim 0 (seqLen-1) seqLen 1 -> <1, oDim/hDim>
+          -- | (\o -> reshape (tail $ shape o) o): -> <2*(oDim/hDim)>
+          hLast = (\o -> reshape (tail $ shape o) o) $ sliceDim 0 (seqLen-1) seqLen 1 output
       return (output, (hLast, cLast))
 
 data LstmParams = LstmParams {
@@ -185,25 +184,38 @@ lstmLayers LstmParams{..} (h0,c0) dropoutProb inputs = unsafePerformIO $ do
   let bidirectional | dnumLayers == numLayers * 2 = True
                     | dnumLayers == numLayers = False
                     | otherwise = False -- Unexpected
-      (h0h:h0t) = if bidirectional -- check the input shapes of h0 tensor
-                    then [sliceDim 0 (2*i) (2*i+2) 1 h0 | i <- [0..numLayers]]
-                    else [sliceDim 0 i (i+1) 1 h0 | i <- [0..numLayers]]
-      (c0h:c0t) = if bidirectional -- check the input shapes of c0 tensor
-                    then [sliceDim 0 (2*i) (2*i+2) 1 c0 | i <- [0..numLayers]]
-                    else [sliceDim 0 i (i+1) 1 c0 | i <- [0..numLayers]]
+      d = if bidirectional then 2 else 1
+      (h0h:h0t) = [sliceDim 0 (d*i) (d*(i+1)) 1 h0 | i <- [0..numLayers]]
+      (c0h:c0t) = [sliceDim 0 (d*i) (d*(i+1)) 1 c0 | i <- [0..numLayers]]
       firstLayer = singleLstmLayer bidirectional hiddenSize firstLstmParams (h0h,c0h) 
       restOfLayers = map (uncurry $ singleLstmLayer bidirectional hiddenSize) $ zip restLstmParams $ zip h0t c0t
       dropoutLayer = case dropoutProb of
                        Just prob -> unsafePerformIO . (dropout prob True)
                        Nothing -> id
       stackedLayers = \inputTensor -> 
-                        scanl'
-                          (\ohc nextLayer -> nextLayer $ dropoutLayer $ fst ohc)
-                          (firstLayer inputTensor) -- (<seqLen,D * oDim>,(<D * oDim>,<D * cDim>))
-                          restOfLayers
-      (output, hncn) = unzip $ stackedLayers inputs
+                        scanr
+                          (\nextLayer ohc -> nextLayer $ dropoutLayer $ fst ohc)
+                          (firstLayer inputTensor) -- (<seqLen,D*oDim>,(<D*oDim>,<D*cDim>))
+                          restOfLayers -- 
+      -- | inputs:           <seqLen,iDim>
+      -- | stackedLayers: -> [(<seqLen, D*oDim>,(<D*oDim>,<D*cDim>))] of length numLayers
+      -- | unzip:         -> ([<seqLen, D*oDim>] of length numLayers, [(<D*oDim>,<D*cDim>)] of length numLayers)
+      -- | output:        [<seqLen, D*oDim>] of length numLayers
+      -- | hncn:          [(<D*oDim>,<D*cDim>)] of length numLayers
+      (outputList, hncn) = unzip $ stackedLayers inputs
+      -- | unzip:         -> ([<D*oDim>] of length numLayers, [<D*cDim>] of length numLayers)
+      -- | hn, cn:        -> [<D*oDim/cDim>] of length numLayers
+      output = head outputList
+      -- | stack (Dim 0):  -> <numLayers, D*oDim/cDim>
+      -- | reshape:        -> <D*numLayers, oDim/cDim>
+      oDim = case projGate firstLstmParams of 
+               Just linearParam -> 
+                 let (o:_) = shape $ toDependent $ weight linearParam in o
+               Nothing -> hiddenSize
       (hn, cn) = unzip hncn
-  return (last output, (cat (Dim 0) hn, cat (Dim 0) cn))
+      rh = \x -> reshape [d * numLayers, oDim] $ stack (Dim 0) x
+      rc = \x -> reshape [d * numLayers, hiddenSize] $ stack (Dim 0) x
+  return (output, (rh hn, rc cn))
 
 data InitialStatesHypParams = InitialStatesHypParams {
   dev :: Device
