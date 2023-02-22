@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e6f6664d1eed5028f046217a4707e07500354fbd63fe49d1b83cd6b188e8c95b
+-- hash: add34cc83dbafac32c97172bdc06927ade56c1ca5a70c327bed3dc5ad827e9a9
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -32,10 +32,12 @@ library
       Torch.Control
       Torch.Train
       Torch.Layer.Linear
+      Torch.Layer.NonLinear
       Torch.Layer.MLP
       Torch.Layer.RNN
       Torch.Layer.LSTM
       Torch.Layer.SimpleLSTM
+      Torch.Layer.ProtoType.RNN
       Torch.Layer.ProtoType.LSTM
       Torch.Tensor.TensorFactories
       Torch.Tensor.Initializers
@@ -247,13 +249,13 @@ test-suite lstmTest
     , zlib >=0.6
   default-language: Haskell2010
 
-test-suite singleLstmLayerTest
+test-suite rnnTest
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
       Paths_hasktorch_tools
   hs-source-dirs:
-      test/singleLstmLayerTest
+      test/rnnTest
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit >=1.6.0

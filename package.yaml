@@ -61,10 +61,12 @@ library:
   - Torch.Control
   - Torch.Train
   - Torch.Layer.Linear
+  - Torch.Layer.NonLinear
   - Torch.Layer.MLP
   - Torch.Layer.RNN
   - Torch.Layer.LSTM
   - Torch.Layer.SimpleLSTM
+  - Torch.Layer.ProtoType.RNN
   - Torch.Layer.ProtoType.LSTM
   - Torch.Tensor.TensorFactories
   - Torch.Tensor.Initializers
@@ -165,13 +167,27 @@ executables:
 #      - hasktorch-tools
 #      - containers >= 0.6
 tests:
-  singleLstmLayerTest:
+#  singleRnnLayerTest:
+#    main:         Main.hs
+#    source-dirs:  test/singleRnnLayerTest
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: 
+#      - hasktorch-tools
+#      - HUnit >= 1.6.0
+  rnnTest:
     main:         Main.hs
-    source-dirs:  test/singleLstmLayerTest
+    source-dirs:  test/rnnTest
     ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
     dependencies: 
       - hasktorch-tools
       - HUnit >= 1.6.0
+#  singleLstmLayerTest:
+#    main:         Main.hs
+#    source-dirs:  test/singleLstmLayerTest
+#    ghc-options:  [-threaded, -rtsopts, -with-rtsopts=-N]
+#    dependencies: 
+#      - hasktorch-tools
+#      - HUnit >= 1.6.0
   lstmTest:
     main:         Main.hs
     source-dirs:  test/lstmTest

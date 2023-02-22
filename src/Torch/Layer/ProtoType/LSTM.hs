@@ -17,11 +17,10 @@ import Data.List (scanl',foldl') --base
 import Control.Monad (forM)      --base
 --hasktorch
 import Torch.Tensor       (Tensor(..))
-import Torch.Functional   (Dim(..),sigmoid,cat,stack)
+import Torch.Functional   (Dim(..),sigmoid,cat)
 import Torch.Device       (Device(..))
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
-import Torch.Autograd (IndependentTensor(..),makeIndependent)
-import Torch.Tensor.Util (unstack)
+import Torch.Autograd     (IndependentTensor(..),makeIndependent)
 import Torch.Tensor.TensorFactories (randnIO')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 

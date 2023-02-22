@@ -12,7 +12,7 @@ module Torch.Layer.Linear (
 
 import GHC.Generics                       --base
 import Data.List        (singleton)       --base
-import Control.Monad    (when,unless)     --base
+import Control.Monad    (unless)     --base
 import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
 import Torch.Tensor          (Tensor(..),toCPU,shape,reshape)
