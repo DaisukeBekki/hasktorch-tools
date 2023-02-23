@@ -52,11 +52,11 @@ instance Parameterized SingleRnnParams
 rnnCell :: SingleRnnParams 
   -> Tensor -- ^ ht of shape <hDim>
   -> Tensor -- ^ xt of shape <iDim/oDim>
-  -> Tensor -- ht' of shape <hDim>
+  -> Tensor -- ^ ht' of shape <hDim>
 rnnCell SingleRnnParams{..} ht xt = linearLayer rnnGate $ cat (Dim 0) [xt,ht]
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
--- | （lstmLayersのサブルーチン。外部から使う想定ではない）
+-- | （rnLayersのサブルーチン。外部から使う想定ではない）
 -- | scanl'の型メモ :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 singleRnnLayer :: Bool -- ^ bidirectional (True if bidirectioal, False otherwise)
   -> Int               -- ^ stateDim (=hDim)
