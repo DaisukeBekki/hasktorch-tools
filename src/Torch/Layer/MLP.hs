@@ -45,8 +45,8 @@ instance Show MLPParams where
     "Input Layer:\n" ++ "\nOutput Layer:\n"
 -}
 
-mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
-mlpLayer MLPParams{..} input = squeezeAll $ foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
+mlpLayer :: MLPParams -> Tensor -> Tensor 
+mlpLayer MLPParams{..} input = foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
 
 -- | Example:
 -- | toPairwise [(4,"a"),(5,"b"),(6,"c")] = [((4,"a"),(5,"b")),((5,"b"),(6,"c"))]
