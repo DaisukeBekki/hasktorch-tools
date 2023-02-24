@@ -21,8 +21,8 @@ import Torch.Device          (Device(..))
 import Torch.NN              (Parameter,Parameterized,Randomizable,sample)
 import Torch.Autograd        (IndependentTensor(..),makeIndependent)
 --hasktorch-tools
-import Torch.Tensor.TensorFactories (asTensor'',randintIO')
---import Torch.Tensor.Initializers    (xavierUniform')
+import Torch.Tensor.TensorFactories (asTensor'')
+import Torch.Tensor.Initializers    (xavierUniform')
 
 data LinearHypParams = LinearHypParams {
   dev :: Device,
@@ -41,8 +41,8 @@ instance Parameterized LinearParams -- Generic
 instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
     let denom = asTensor'' dev $ singleton $ sqrt $ ((fromIntegral outputDim)::Float)
-    m <- randintIO' dev (-1) 1 [outputDim, inputDim] 
-    b <- randintIO' dev (-1) 1 [outputDim, 1]
+    m <- xavierUniform' dev [outputDim, inputDim] 
+    b <- xavierUniform' dev [outputDim, 1]
     LinearParams
       <$> makeIndependent (m / denom) -- denomでnormalize
       <*> if hasBias
