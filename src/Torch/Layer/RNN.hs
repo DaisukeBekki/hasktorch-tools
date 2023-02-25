@@ -50,26 +50,27 @@ newtype SingleRnnParams = SingleRnnParams {
 instance Parameterized SingleRnnParams
 
 rnnCell :: SingleRnnParams 
+  -> (Tensor -> Tensor) -- ^ non linearity
   -> Tensor -- ^ ht of shape <hDim>
   -> Tensor -- ^ xt of shape <iDim/oDim>
   -> Tensor -- ^ ht' of shape <hDim>
-rnnCell SingleRnnParams{..} ht xt = linearLayer rnnGate $ cat (Dim 0) [xt,ht]
+rnnCell SingleRnnParams{..} actf ht xt = actf $ linearLayer rnnGate $ cat (Dim 0) [xt,ht]
 
 -- | inputのlistから、(cellState,hiddenState=output)のリストを返す
 -- | （rnLayersのサブルーチン。外部から使う想定ではない）
 -- | scanl'の型メモ :: ((h,c) -> input -> (h',c')) -> (h0,c0) -> [input] -> [(hi,ci)]
 singleRnnLayer :: Bool -- ^ bidirectional (True if bidirectioal, False otherwise)
   -> Int               -- ^ stateDim (=hDim)
-  -> ActName           -- ^ actname (the name of nonlinear function)
+  -> ActName           -- ^ nonlinear function
   -> SingleRnnParams   -- ^ singleRnnParams
   -> Tensor            -- ^ h0: <1,hDim> for one-directional and <2,hDim> for BiLSTM
   -> Tensor            -- ^ inputs: <seqLen,iDim/oDim> for the 1st-layer/the rest
   -> (Tensor,Tensor)   -- ^ an output pair (<seqLen,D*oDim>,<D*oDim>)
-singleRnnLayer bidirectional stateDim actname singleRnnParams h0 inputs = unsafePerformIO $ do
+singleRnnLayer bidirectional stateDim actName singleRnnParams h0 inputs = unsafePerformIO $ do
   let h0shape = shape h0
       [seqLen,_] = shape inputs
       d = if bidirectional then 2 else 1
-      actf = decodeAct actname
+      actf = decodeAct actName
   unless (h0shape == [d,stateDim]) $ ioError $ userError $ "illegal shape of h0: " ++ (show h0shape) 
   if bidirectional -- check the well-formedness of the shapes of h0 and c0
     then do -- the case of BiRNN
@@ -77,17 +78,16 @@ singleRnnLayer bidirectional stateDim actname singleRnnParams h0 inputs = unsafe
           h0b = select 0 1 h0 -- | pick the second h0 for the backward cells
           hsForward = inputs  -- | <seqLen,iDim/oDim> 
             .-> unstack       -- | [<iDim/oDim>] of length seqLen
-            .-> scanl' (rnnCell singleRnnParams) h0f -- | [<hDim>] of length seqLen+1
+            .-> scanl' (rnnCell singleRnnParams actf) h0f -- | [<hDim>] of length seqLen+1
             .-> tail          -- | [<hDim>] of length seqLen (by removing h0f)
             .-> stack (Dim 0) -- | <seqLen, hDim>
           hsBackward = inputs -- | <seqLen,iDim/oDim> 
             .-> unstack       -- | [<iDim/oDim>] of length seqLen
-            .-> scanr (flip $ rnnCell singleRnnParams) h0b -- | [<hDim>] of length seqLen+1
+            .-> scanr (flip $ rnnCell singleRnnParams actf) h0b -- | [<hDim>] of length seqLen+1
             .-> init          -- | [<hDim>] of length seqLen (by removing h0b)
             .-> stack (Dim 0) -- | <seqLen, hDim>
           output = [hsForward, hsBackward]   -- | [<seqLen, hDim>] of length 2
             .-> stack (Dim 0)                -- | <2, seqLen, hDim>
-            .-> actf                         -- | <2, seqLen, hDim> ??
             .-> transpose (Dim 0) (Dim 1)    -- | <seqLen, 2, hDim>
             .-> reshape [seqLen, 2*stateDim] -- | <seqLen, 2*hDim>
           hLast = output                           -- | <seqLen, 2*hDim>
@@ -98,7 +98,7 @@ singleRnnLayer bidirectional stateDim actname singleRnnParams h0 inputs = unsafe
       let h0f = select 0 0 h0
           output = inputs
             .-> unstack          -- | [<iDim/oDim>] of length seqLen
-            .-> scanl' (rnnCell singleRnnParams) h0f -- | [<hDim>] of length seqLen+1
+            .-> scanl' (rnnCell singleRnnParams actf) h0f -- | [<hDim>] of length seqLen+1
             .-> tail             -- | [<hDim>] of length seqLen (by removing h0)
             .-> stack (Dim 0)    -- | <seqLen, hDim>
             .-> actf             -- | <seqLen, hDim> ??
