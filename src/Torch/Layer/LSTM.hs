@@ -34,6 +34,9 @@ import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 (.->) :: a -> (a -> b) -> b
 (.->) = (&)
 
+debug :: Bool
+debug = False
+
 data LstmHypParams = LstmHypParams {
   dev :: Device
   , bidirectional :: Bool 

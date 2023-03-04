@@ -18,33 +18,33 @@ import Torch.Autograd     (IndependentTensor(..))
 --import Torch.Index        (slice)
 --hasktorch-tools
 import Torch.Train        (update)
-import Torch.Functional   (matmul)
+import Torch.Functional   (matmul,unsqueeze)
 import Torch.Tensor.TensorFactories (asTensor'')
 import Torch.Tensor.Initializers    (xavierUniform')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.NonLinear (ActName(..))
-import Torch.Layer.ProtoType.Transformer (TransformerHypParams(..),TransformerParams(..),sdpAttention,positionwiseFeedForward,positionalEncoding)
+import Torch.Layer.ProtoType.Transformer 
+--(TransformerHypParams(..),TransformerParams(..),AttentionHypParams(..),AttentionParams(..),sdpAttention,positionwiseFeedForward,positionalEncoding,attentionLayer,encoder)
 
 (.->) :: a -> (a -> b) -> b
 (.->) = (&)
 
 main :: IO ()
 main = do
-  let dev = Device CPU 0
+  let dev = Device CUDA 0
       hasBias = True
-      dimI = 2
-      dimQK = 3
-      nLayers = 3
-      nHeads = 5
+      dimI = 1024
+      dimQK = 512
+      nLayers = 6
+      nHeads = 6
       nBatches = 5
-      seqLen = 11
+      seqLen = 13
       dimModel = nHeads * dimQK
-      dimFF = 10
-  model <- sample $ TransformerHypParams dev hasBias dimI dimQK nHeads nLayers (0.1) [(dimFF,Relu)]
-  q <- xavierUniform' dev [nBatches,seqLen,dimModel]
-  k <- xavierUniform' dev [nBatches,seqLen,dimModel]
-  v <- xavierUniform' dev [nBatches,seqLen,dimModel]
-  let x = sdpAttention dev nBatches nHeads seqLen dimQK q k v
-      y = positionwiseFeedForward 
-      z = positionalEncoding dev seqLen dimModel 
-  print z
+      dimFF = 1024
+      dropoutProb = 0.1
+  model <- sample $ TransformerHypParams dev hasBias dimI dimQK dimFF nHeads nLayers Relu
+  input <- xavierUniform' dev [nBatches,seqLen,dimI]
+  let v = encoder model dev nHeads dimQK dropoutProb input
+  print v
+
+

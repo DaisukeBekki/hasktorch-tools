@@ -7,9 +7,9 @@ module Torch.Layer.MLP (
   mlpLayer
   ) where
 
-import Prelude hiding (tanh)
-import Control.Monad (forM) --base
-import Data.List (foldl') --base
+import Prelude hiding     (tanh)
+import Control.Monad      (forM) --base
+import Data.List          (foldl') --base
 import GHC.Generics       --base
 import Torch.Tensor       (Tensor(..))
 import Torch.Functional   (squeezeAll)
@@ -26,7 +26,7 @@ data MLPHypParams = MLPHypParams {
 
 -- | DeriveGeneric Pragmaが必要
 data MLPParams = MLPParams {
-  layers :: [(LinearParams, Tensor -> Tensor)]
+  layers :: [(LinearParams, ActName)]
   } deriving (Generic)
 
 instance Parameterized MLPParams
@@ -36,7 +36,7 @@ instance Randomizable MLPHypParams MLPParams where
     let layersSpecs = (inputDim,Id):layerSpecs 
     layers <- forM (toPairwise layersSpecs) $ \((iDim,_),(outputDim,outputAct)) -> do
           linearL <- sample $ LinearHypParams dev True iDim outputDim
-          return $ (linearL, decodeAct outputAct)
+          return $ (linearL, outputAct)
     return $ MLPParams layers
 
 {-
@@ -46,7 +46,7 @@ instance Show MLPParams where
 -}
 
 mlpLayer :: MLPParams -> Tensor -> Tensor 
-mlpLayer MLPParams{..} input = foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
+mlpLayer MLPParams{..} input = foldl' (\vec (layerParam, act) -> decodeAct act $ linearLayer layerParam vec) input layers
 
 -- | Example:
 -- | toPairwise [(4,"a"),(5,"b"),(6,"c")] = [((4,"a"),(5,"b")),((5,"b"),(6,"c"))]

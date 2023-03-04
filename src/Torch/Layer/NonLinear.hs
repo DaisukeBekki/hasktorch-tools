@@ -10,11 +10,16 @@ import GHC.Generics              --base
 import qualified Data.Aeson as A --aeson
 import Torch.Tensor (Tensor(..)) --hasktorch
 import Torch.Functional   (sigmoid,relu,elu',selu) --hasktorch
+import Torch.NN (Parameterized(..))
 
 data ActName = Id | Sigmoid | Tanh | Relu | Elu | Selu deriving (Eq,Show,Read,Generic)
 
 instance A.FromJSON ActName
 instance A.ToJSON ActName
+
+instance Parameterized ActName where
+  flattenParameters _ = []
+  _replaceParameters = return
 
 decodeAct :: ActName -> Tensor -> Tensor
 decodeAct actname = case actname of
