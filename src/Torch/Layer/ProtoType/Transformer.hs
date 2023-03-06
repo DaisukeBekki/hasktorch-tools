@@ -22,7 +22,7 @@ import Data.Function      ((&))             --base
 import Torch.Tensor       (Tensor(..),shape,reshape,sliceDim)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.DType        (DType(..))
-import Torch.Functional   (Dim(..),KeepDim(..),mul,exp,sin,cos,matmul,sqrt,transpose,cat,stack,softmax,sumDim,dropout,unsqueeze)
+import Torch.Functional   (Dim(..),KeepDim(..),mul,exp,sin,cos,matmul,sqrt,transpose,cat,stack,softmax,sumDim,dropout,unsqueeze,flattenAll)
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
 --import Torch.Autograd    (IndependentTensor(..),makeIndependent)
 --hasktorch-tools
@@ -174,10 +174,12 @@ positionalEncoding dev seqLen dimModel = unsafePerformIO $ do
                  .-> unsqueeze (Dim 1)                     -- | <seqLen,1>
       denom = asTensor'' dev $ - (log (10000::Float)) / (fromIntegral dimModel) -- | <> seqLen=5, dimModel=6
       numer = asTensor'' dev $ [0,2..dimModel-1]                                  -- | <dimModel/2>
-      points = position * exp (denom * numer)              -- | <seqLen,dimModel/2> = <5,3>
-  return $ [sin points, cos points]                        -- | [<seqLen,dimModel/2>] of length 2
-           .-> cat (Dim 1)                                 -- | <seqLen,(dimModel/2)*2>=<seqLen,dimModel> 
-           .-> unsqueeze (Dim 0)                           -- | <1,seqLen,dimModel>
+      points = position * exp (denom * numer) -- | <seqLen,dimModel/2> = <5,3>
+      even = unsqueeze (Dim 1) $ flattenAll $ sin points -- | <seqLen * dimModel/2>
+      odd  = unsqueeze (Dim 1) $ flattenAll $ cos points -- | <seqLen * dimModel/2>
+  return $ [even,odd]       -- | [<seqLen * dimModel/2>] of length 2
+           .-> cat (Dim 1)  -- | <seqLen*dimModel/2, 2>
+           .-> reshape [seqLen,dimModel] -- | <seqLen,dimModel>
 
 encoder :: TransformerParams
   -> Device -- ^ dev
