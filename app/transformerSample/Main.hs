@@ -39,7 +39,7 @@ main = do
       nHeads = 6
       nBatches = 5
       seqLen = 13
-      dimModel = nHeads * dimQK
+      --dimModel = nHeads * dimQK
       dimFF = 2048
       dropoutProb = 0
   --model <- sample $ AttentionHypParams dev hasBias dimModel dimFF Relu

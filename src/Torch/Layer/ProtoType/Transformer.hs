@@ -48,7 +48,7 @@ data TransformerHypParams = TransformerHypParams {
   , dimInput :: Int  -- ^ The number of expected features in the input x
   , dimQK :: Int 
   , dimFF :: Int
-  , numHeads :: Int
+  , nHeads :: Int
   , numLayers :: Int 
   , nonlinearity :: ActName
   } deriving (Eq, Show)
@@ -56,22 +56,27 @@ data TransformerHypParams = TransformerHypParams {
 data TransformerParams = TransformerParams {
   inputEmbeddingParams :: LinearParams
   , encoderParamsStack :: [AttentionParams]
+  , denomNumerP :: Tensor
 } deriving (Generic)
 instance Parameterized TransformerParams -- Generic
 
 instance Randomizable TransformerHypParams TransformerParams where
   sample TransformerHypParams{..} = do
-    let dimModel = numHeads * dimQK
+    let dimModel = nHeads * dimQK
+        denomP = asTensor'' dev $ - (log (10000::Float)) / (fromIntegral dimModel) -- | <> seqLen=5, dimModel=6
+        numerP = asTensor'' dev $ [0,2..dimModel-1]                                -- | <dimModel/2>
     TransformerParams
       <$> sample (LinearHypParams dev hasBias dimInput dimModel)
       <*> forM [1..numLayers] (\_ ->
-            sample (AttentionHypParams dev hasBias dimModel dimFF nonlinearity)
+            sample (AttentionHypParams dev hasBias nHeads dimQK dimFF nonlinearity)
             )
+      <*> return (denomP * numerP)
 
 data AttentionHypParams = AttentionHypParams {
   dev :: Device
   , hasBias :: Bool
-  , dimModel :: Int
+  , nHeads :: Int
+  , dimQK :: Int
   , dimFF :: Int
   , nonlinearity :: ActName
 } deriving (Eq, Show)
@@ -79,14 +84,17 @@ data AttentionHypParams = AttentionHypParams {
 data AttentionParams = AttentionParams {
   genQKV :: LinearParams
   , mlpParams :: MLPParams
+  , denomA :: Tensor
 } deriving (Generic)
 instance Parameterized AttentionParams
 
 instance Randomizable AttentionHypParams AttentionParams where
   sample AttentionHypParams{..} = do
+    let dimModel = nHeads * dimQK
     AttentionParams
       <$> sample (LinearHypParams dev hasBias dimModel (dimModel*3))
       <*> sample (MLPHypParams dev dimModel [(dimModel,nonlinearity),(dimFF,nonlinearity),(dimModel,nonlinearity)])
+      <*> return (sqrt $ asTensor'' dev [(fromIntegral dimQK)::Float])
 
 attentionLayer :: AttentionParams 
   -> Device 
@@ -102,7 +110,7 @@ attentionLayer AttentionParams{..} dev nHeads dimQK dropoutProb input = unsafePe
               .-> normalize dev       -- | <nBatches,seqLen,dimModel>
               .-> linearLayer genQKV  -- | <nBatches,seqLen,dimModel*3>
               .-> chunk 3 (Dim 2)     -- | [<nBatches,seqLen,dimModel>] of length 3
-      x = sdpAttention dev nBatches nHeads seqLen dimQK q k v -- | <nBatches,seqLen,dimModel>
+      x = sdpAttention dev nBatches nHeads seqLen dimQK denomA q k v -- | <nBatches,seqLen,dimModel>
           .-> dropoutLayer  -- | <nBatches,seqLen,dimModel>
           .-> (+ input)     -- | <nBatches,seqLen,dimModel>
   return $ x
@@ -114,14 +122,15 @@ attentionLayer AttentionParams{..} dev nHeads dimQK dropoutProb input = unsafePe
 -- | scaled dot-product (multi headed) attention
 sdpAttention :: Device -- ^ device
   -> Int -- ^ numBatches
-  -> Int -- ^ numHeads (of Q,K,V)
+  -> Int -- ^ nHeads (of Q,K,V)
   -> Int -- ^ seq length
   -> Int -- ^ dimQK (of Q,K,V)
+  -> Tensor -- ^ denominator
   -> Tensor -- ^ Q <nBatches,seqLen,dimModel>
   -> Tensor -- ^ K <nBatches,seqLen,dimModel> 
   -> Tensor -- ^ V <nBatches,seqLen,dimModel>
   -> Tensor -- ^ output <nBatches,seqLen,Heads*dimQK>
-sdpAttention dev nBatches nHeads seqLen dimQK q k v = 
+sdpAttention dev nBatches nHeads seqLen dimQK denomA q k v = 
   let q' = q                                           -- | <nBatches,seqLen,dimModel>
            .-> reshape [nBatches,seqLen,nHeads,dimQK]  -- | <nBatches,seqLen,nHeads,dimQK>
            .-> transpose (Dim 1) (Dim 2)               -- | <nBatches,nHeads,seqLen,dimQK>
@@ -131,7 +140,6 @@ sdpAttention dev nBatches nHeads seqLen dimQK q k v =
       v' = v                                           -- | <nBatches,seqLen,dimModel>
            .-> reshape [nBatches,seqLen,nHeads,dimQK]   -- | <nBatches,seqLen,nHeads,dimQK>
            .-> transpose (Dim 1) (Dim 2)               -- | <nBatches,nHeads,seqLen,dimQK>
-      denom = sqrt $ asTensor'' dev [(fromIntegral dimQK)::Float] -- | denominator
       a = for [0..(seqLen-1)] $ \i -> 
            q'                                       -- | <nBatches,nHeads,seqLen,dimQK>
            .-> sliceDim 2 i (i+1) 1                 -- | <nBatches,nHeads,1,dimQK>
@@ -139,7 +147,7 @@ sdpAttention dev nBatches nHeads seqLen dimQK q k v =
            .-> (flip matmul) k'                     -- | <nBatches,nHeads,seqLen,1,1> broadcasting q
            .-> reshape [nBatches,nHeads,seqLen,1]   -- | <nBatches,nHeads,seqLen,1>
            .-> softmax (Dim 2)                      -- | <nBatches,nHeads,seqLen,1>
-           .-> (\x ->  x / denom)                   -- | <nBatches,nHeads,seqLen,1>
+           .-> (\x ->  x / denomA)                   -- | <nBatches,nHeads,seqLen,1>
            .-> (flip mul) v'                        -- | <nBatches,nHeads,seqLen,dimQK>
            .-> sumDim (Dim 2) KeepDim Float         -- | <nBatches,nHeads,1,dimQK>
   in a               -- | [<nBatches,nHeads,1,dimQK>] of length seqLen
@@ -169,15 +177,14 @@ normalize dev input = unsafePerformIO $ do
 positionalEncoding :: Device -- ^ dev
   -> Int -- ^ seqLen
   -> Int    -- ^ dimModel
+  -> Tensor -- ^ denom * numer2
   -- -> Tensor -- ^ input tensor <seqLen,dimModel>
   -> Tensor -- ^ output tensor <seqLen,dimModel>
-positionalEncoding dev seqLen dimModel = unsafePerformIO $ do
+positionalEncoding dev seqLen dimModel denomNumerP = unsafePerformIO $ do
   let position = ((map fromIntegral [0..seqLen-1])::[Float]) -- | [0..seqLen-1]::[Float]
                  .-> asTensor'' dev                        -- | <seqLen>
                  .-> unsqueeze (Dim 1)                     -- | <seqLen,1>
-      denom = asTensor'' dev $ - (log (10000::Float)) / (fromIntegral dimModel) -- | <> seqLen=5, dimModel=6
-      numer = asTensor'' dev $ [0,2..dimModel-1]                                  -- | <dimModel/2>
-      points = position * exp (denom * numer) -- | <seqLen,dimModel/2> = <5,3>
+      points = position * exp (denomNumerP) -- | <seqLen,dimModel/2> = <5,3>
       even = unsqueeze (Dim 1) $ flattenAll $ sin points -- | <seqLen * dimModel/2>
       odd  = unsqueeze (Dim 1) $ flattenAll $ cos points -- | <seqLen * dimModel/2>
   return $ [even,odd]       -- | [<seqLen * dimModel/2>] of length 2
@@ -197,7 +204,7 @@ encoder TransformerParams{..} dev nHeads dimQK dropoutProb input = unsafePerform
       y = positionalEncoding dev seqLen dimModel
       input' = input                                          -- | <nBatches,seqLen,dimInput>
                .-> linearLayer inputEmbeddingParams           -- | <nBatches,seqLen,dimModel>
-               .-> (+ positionalEncoding dev seqLen dimModel) -- | <nBatches,seqLen,dimModel>
+               .-> (+ positionalEncoding dev seqLen dimModel denomNumerP) -- | <nBatches,seqLen,dimModel>
   -- | foldl' :: (b -> a -> b) -> b -> [a] -> b
   return $ foldl' (\x layer -> layer x)
                   input'
