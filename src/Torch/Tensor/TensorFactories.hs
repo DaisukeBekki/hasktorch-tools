@@ -5,11 +5,12 @@ module Torch.Tensor.TensorFactories (
   randIO',
   randnIO',
   randintIO',
-  zeros'
+  zeros',
+  ones'
 ) where
 
 import Torch.Tensor (Tensor(..),TensorLike(..))
-import Torch.TensorFactories (randIO,randnIO,randintIO,zeros)
+import Torch.TensorFactories (randIO,randnIO,randintIO,zeros,ones)
 import Torch.TensorOptions (defaultOpts,withDevice)
 import Torch.Device (Device(..))
 
@@ -27,3 +28,6 @@ randintIO' dev low high shape = randintIO low high shape $ withDevice dev defaul
 
 zeros' :: Device -> [Int] -> Tensor
 zeros' dev shape = zeros shape $ withDevice dev defaultOpts
+
+ones' :: Device -> [Int] -> Tensor
+ones' dev shape = ones shape $ withDevice dev defaultOpts

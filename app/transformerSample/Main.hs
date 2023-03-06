@@ -18,7 +18,7 @@ import Torch.Autograd     (IndependentTensor(..))
 --import Torch.Index        (slice)
 --hasktorch-tools
 import Torch.Train        (update)
-import Torch.Functional   (matmul,unsqueeze)
+import Torch.Functional   (KeepDim(..),stdMeanDim)
 import Torch.Tensor.TensorFactories (asTensor'')
 import Torch.Tensor.Initializers    (xavierUniform')
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
@@ -33,18 +33,21 @@ main :: IO ()
 main = do
   let dev = Device CUDA 0
       hasBias = True
-      dimI = 1024
-      dimQK = 512
+      dimI = 516
+      dimQK = 1023
       nLayers = 6
       nHeads = 6
       nBatches = 5
       seqLen = 13
       dimModel = nHeads * dimQK
-      dimFF = 1024
-      dropoutProb = 0.1
+      dimFF = 2048
+      dropoutProb = 0
+  --model <- sample $ AttentionHypParams dev hasBias dimModel dimFF Relu
   model <- sample $ TransformerHypParams dev hasBias dimI dimQK dimFF nHeads nLayers Relu
   input <- xavierUniform' dev [nBatches,seqLen,dimI]
-  let v = encoder model dev nHeads dimQK dropoutProb input
-  print v
-
-
+  let --pe = positionalEncoding dev seqLen dimModel
+      v = encoder model dev nHeads dimQK dropoutProb input
+      --u = attentionLayer model dev nHeads dimQK dropoutProb input
+  --print input
+  print v 
+  print $ shape v

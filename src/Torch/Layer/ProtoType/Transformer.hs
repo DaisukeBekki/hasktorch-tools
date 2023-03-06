@@ -7,6 +7,7 @@ module Torch.Layer.ProtoType.Transformer (
   , AttentionParams(..)
   , sdpAttention
   , positionwiseFeedForward
+  , normalize
   , attentionLayer
   , positionalEncoding
   , encoder
@@ -22,13 +23,13 @@ import Data.Function      ((&))             --base
 import Torch.Tensor       (Tensor(..),shape,reshape,sliceDim)
 import Torch.Device       (Device(..),DeviceType(..))
 import Torch.DType        (DType(..))
-import Torch.Functional   (Dim(..),KeepDim(..),mul,exp,sin,cos,matmul,sqrt,transpose,cat,stack,softmax,sumDim,dropout,unsqueeze,flattenAll)
+import Torch.Functional   (Dim(..),KeepDim(..),mul,exp,sin,cos,matmul,sqrt,transpose,cat,stack,softmax,sumDim,dropout,unsqueeze,flattenAll,stdMeanDim,chunk)
 import Torch.NN           (Parameterized(..),Randomizable(..),Parameter,sample)
 --import Torch.Autograd    (IndependentTensor(..),makeIndependent)
 --hasktorch-tools
 import Torch.Layer.Linear (LinearHypParams(..),LinearParams(..),linearLayer)
 import Torch.Layer.MLP    (MLPHypParams(..),MLPParams(..),mlpLayer)
-import Torch.Tensor.TensorFactories (asTensor'',zeros')
+import Torch.Tensor.TensorFactories (asTensor'',zeros',ones')
 import Torch.Layer.NonLinear (ActName(..))
 
 -- | Backwards function application.
@@ -76,9 +77,7 @@ data AttentionHypParams = AttentionHypParams {
 } deriving (Eq, Show)
 
 data AttentionParams = AttentionParams {
-  genQ :: LinearParams
-  , genK :: LinearParams
-  , genV :: LinearParams
+  genQKV :: LinearParams
   , mlpParams :: MLPParams
 } deriving (Generic)
 instance Parameterized AttentionParams
@@ -86,9 +85,7 @@ instance Parameterized AttentionParams
 instance Randomizable AttentionHypParams AttentionParams where
   sample AttentionHypParams{..} = do
     AttentionParams
-      <$> sample (LinearHypParams dev hasBias dimModel dimModel)
-      <*> sample (LinearHypParams dev hasBias dimModel dimModel)
-      <*> sample (LinearHypParams dev hasBias dimModel dimModel)
+      <$> sample (LinearHypParams dev hasBias dimModel (dimModel*3))
       <*> sample (MLPHypParams dev dimModel [(dimModel,nonlinearity),(dimFF,nonlinearity),(dimModel,nonlinearity)])
 
 attentionLayer :: AttentionParams 
@@ -101,22 +98,20 @@ attentionLayer :: AttentionParams
 attentionLayer AttentionParams{..} dev nHeads dimQK dropoutProb input = unsafePerformIO $ do
   let [nBatches,seqLen,dimModel] = shape input
   unless (dimModel == nHeads * dimQK) $ ioError $ userError $ "illegal input shape: " ++ (show $ shape input)
-  let q = linearLayer genQ input -- | <nBatches,seqLen,dimModel>
-      k = linearLayer genK input -- | <nBatches,seqLen,dimModel>
-      v = linearLayer genV input -- | <nBatches,seqLen,dimModel>
+  let [q,k,v] = input                 -- | <nBatches,seqLen,dimModel>
+              .-> normalize dev       -- | <nBatches,seqLen,dimModel>
+              .-> linearLayer genQKV  -- | <nBatches,seqLen,dimModel*3>
+              .-> chunk 3 (Dim 2)     -- | [<nBatches,seqLen,dimModel>] of length 3
       x = sdpAttention dev nBatches nHeads seqLen dimQK q k v -- | <nBatches,seqLen,dimModel>
-          .-> normalize    -- | <nBatches,seqLen,dimModel>
-          .-> dropoutLayer -- | <nBatches,seqLen,dimModel>
-          .-> (+ input)    -- | <nBatches,seqLen,dimModel>
+          .-> dropoutLayer  -- | <nBatches,seqLen,dimModel>
+          .-> (+ input)     -- | <nBatches,seqLen,dimModel>
   return $ x
            .-> mlpLayer mlpParams -- | <nBatches,seqLen,dimModel>
-           .-> normalize          -- | <nBatches,seqLen,dimModel>
-           .-> (+ x)              -- | <nBatches,seqLen,dimModel>
+           .-> (+ x)              -- | <nBatches,seqLen,dimModel> -- residual Connection
   where -- | (Tensor -> Tensor) -> Tensor -> Tensor
-    --residualConnection sublayer x = x +  $ sublayer $ normalize x)
     dropoutLayer = unsafePerformIO . (dropout dropoutProb True)
 
--- | scaled dot-product attention
+-- | scaled dot-product (multi headed) attention
 sdpAttention :: Device -- ^ device
   -> Int -- ^ numBatches
   -> Int -- ^ numHeads (of Q,K,V)
@@ -126,7 +121,7 @@ sdpAttention :: Device -- ^ device
   -> Tensor -- ^ K <nBatches,seqLen,dimModel> 
   -> Tensor -- ^ V <nBatches,seqLen,dimModel>
   -> Tensor -- ^ output <nBatches,seqLen,Heads*dimQK>
-sdpAttention dev nBatches nHeads seqLen dimQK q k v = unsafePerformIO $ do
+sdpAttention dev nBatches nHeads seqLen dimQK q k v = 
   let q' = q                                           -- | <nBatches,seqLen,dimModel>
            .-> reshape [nBatches,seqLen,nHeads,dimQK]  -- | <nBatches,seqLen,nHeads,dimQK>
            .-> transpose (Dim 1) (Dim 2)               -- | <nBatches,nHeads,seqLen,dimQK>
@@ -147,10 +142,10 @@ sdpAttention dev nBatches nHeads seqLen dimQK q k v = unsafePerformIO $ do
            .-> (\x ->  x / denom)                   -- | <nBatches,nHeads,seqLen,1>
            .-> (flip mul) v'                        -- | <nBatches,nHeads,seqLen,dimQK>
            .-> sumDim (Dim 2) KeepDim Float         -- | <nBatches,nHeads,1,dimQK>
-  return $ a               -- | [<nBatches,nHeads,1,dimQK>] of length seqLen
-           .-> cat (Dim 2) -- | <nBatches,nHeads,seqLen,dimQK>
-           .-> transpose (Dim 1) (Dim 2) -- | <nBatches,seqLen,nHeads,dimQK>
-           .-> reshape [nBatches,seqLen,nHeads*dimQK]-- | <nBatches,seqLen,nHeads*dimQK=dimModel>
+  in a               -- | [<nBatches,nHeads,1,dimQK>] of length seqLen
+     .-> cat (Dim 2) -- | <nBatches,nHeads,seqLen,dimQK>
+     .-> transpose (Dim 1) (Dim 2) -- | <nBatches,seqLen,nHeads,dimQK>
+     .-> reshape [nBatches,seqLen,nHeads*dimQK]-- | <nBatches,seqLen,nHeads*dimQK=dimModel>
 
 positionwiseFeedForward :: MLPParams -- ^ 
   -> Device -- ^ device
@@ -160,8 +155,16 @@ positionwiseFeedForward :: MLPParams -- ^
 positionwiseFeedForward mlpParams dev dimFF input = 
   mlpLayer mlpParams $ input
 
-normalize :: Tensor -> Tensor
-normalize = id
+normalize :: Device -- ^ device
+  -> Tensor         -- | <nBatches,seqLen,dimModel>
+  -> Tensor         -- | <nBatches,seqLen,dimModel>
+normalize dev input = unsafePerformIO $ do
+  let inputShape = shape input
+      eps = 1e-6
+      ones = ones' dev inputShape
+      zeros = zeros' dev inputShape
+      (std,mean) = stdMeanDim (Dim $ (length inputShape)-1) True KeepDim input
+  return $ ((ones * (input - mean)) / (std + eps)) + zeros -- Why add zeros??
 
 positionalEncoding :: Device -- ^ dev
   -> Int -- ^ seqLen
