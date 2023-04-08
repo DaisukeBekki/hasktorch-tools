@@ -50,7 +50,7 @@ data TransformerHypParams = TransformerHypParams {
   , dimFF :: Int
   , nHeads :: Int
   , numLayers :: Int 
-  , nonlinearity :: ActName
+  , nonLinearity :: ActName
   } deriving (Eq, Show)
 
 data TransformerParams = TransformerParams {
@@ -68,7 +68,7 @@ instance Randomizable TransformerHypParams TransformerParams where
     TransformerParams
       <$> sample (LinearHypParams dev hasBias dimInput dimModel)
       <*> forM [1..numLayers] (\_ ->
-            sample (AttentionHypParams dev hasBias nHeads dimQK dimFF nonlinearity)
+            sample (AttentionHypParams dev hasBias nHeads dimQK dimFF nonLinearity)
             )
       <*> return (denomP * numerP)
 
@@ -78,7 +78,7 @@ data AttentionHypParams = AttentionHypParams {
   , nHeads :: Int
   , dimQK :: Int
   , dimFF :: Int
-  , nonlinearity :: ActName
+  , nonLinearity :: ActName
 } deriving (Eq, Show)
 
 data AttentionParams = AttentionParams {
@@ -93,7 +93,7 @@ instance Randomizable AttentionHypParams AttentionParams where
     let dimModel = nHeads * dimQK
     AttentionParams
       <$> sample (LinearHypParams dev hasBias dimModel (dimModel*3))
-      <*> sample (MLPHypParams dev dimModel [(dimModel,nonlinearity),(dimFF,nonlinearity),(dimModel,nonlinearity)])
+      <*> sample (MLPHypParams dev dimModel [(dimModel,nonLinearity),(dimFF,nonLinearity),(dimModel,nonLinearity)])
       <*> return (sqrt $ asTensor'' dev [(fromIntegral dimQK)::Float])
 
 attentionLayer :: AttentionParams 
@@ -182,14 +182,14 @@ positionalEncoding :: Device -- ^ dev
   -> Tensor -- ^ output tensor <seqLen,dimModel>
 positionalEncoding dev seqLen dimModel denomNumerP = unsafePerformIO $ do
   let position = ((map fromIntegral [0..seqLen-1])::[Float]) -- | [0..seqLen-1]::[Float]
-                 .-> asTensor'' dev                        -- | <seqLen>
-                 .-> unsqueeze (Dim 1)                     -- | <seqLen,1>
-      points = position * exp (denomNumerP) -- | <seqLen,dimModel/2> = <5,3>
-      even = unsqueeze (Dim 1) $ flattenAll $ sin points -- | <seqLen * dimModel/2>
-      odd  = unsqueeze (Dim 1) $ flattenAll $ cos points -- | <seqLen * dimModel/2>
-  return $ [even,odd]       -- | [<seqLen * dimModel/2>] of length 2
-           .-> cat (Dim 1)  -- | <seqLen*dimModel/2, 2>
-           .-> reshape [seqLen,dimModel] -- | <seqLen,dimModel>
+                 .-> asTensor'' dev          -- | <seqLen>
+                 .-> unsqueeze (Dim 1)       -- | <seqLen,1>
+                 .-> (* exp (denomNumerP))   -- | <seqLen,dimModel/2> = <5,3>
+  return $ [sin position,cos position]       -- | [<seqLen,dimModel/2>] of length 2
+           .-> map flattenAll                -- | [<seqLen * dimModel/2>] of length 2
+           .-> map (unsqueeze (Dim 1))       -- | [<seqLen * dimModel/2, 1>] of length 2
+           .-> cat (Dim 1)                   -- | <seqLen*dimModel/2, 2>
+           .-> reshape [seqLen,dimModel]     -- | <seqLen,dimModel>
 
 encoder :: TransformerParams
   -> Device -- ^ dev
@@ -199,16 +199,12 @@ encoder :: TransformerParams
   -> Tensor -- ^ input tensor  <nBatches,seqLen,dimInput>
   -> Tensor -- ^ output tensor <nBatches,seqLen,dimModel
 encoder TransformerParams{..} dev nHeads dimQK dropoutProb input = unsafePerformIO $ do
-  let [nBatches,seqLen,dimInput] = shape input
-      dimModel = nHeads * dimQK
-      y = positionalEncoding dev seqLen dimModel
-      input' = input                                          -- | <nBatches,seqLen,dimInput>
-               .-> linearLayer inputEmbeddingParams           -- | <nBatches,seqLen,dimModel>
-               .-> (+ positionalEncoding dev seqLen dimModel denomNumerP) -- | <nBatches,seqLen,dimModel>
-  -- | foldl' :: (b -> a -> b) -> b -> [a] -> b
-  return $ foldl' (\x layer -> layer x)
-                  input'
-                  (do 
-                    attentionParam <- encoderParamsStack
-                    return $ attentionLayer attentionParam dev nHeads dimQK dropoutProb)
+  let [_,seqLen,_] = shape input
+      embedLayer = input
+                   .-> linearLayer inputEmbeddingParams                             -- | <nBatches,seqLen,dimModel>
+                   .-> (+ positionalEncoding dev seqLen (nHeads*dimQK) denomNumerP) -- | <nBatches,seqLen,dimModel>
+  return $ foldl' (\x layer -> layer x) -- | foldl' :: (b -> a -> b) -> b -> [a] -> b2
+                  embedLayer
+                  [attentionLayer attentionParam dev nHeads dimQK dropoutProb | attentionParam <- encoderParamsStack]
+
 
