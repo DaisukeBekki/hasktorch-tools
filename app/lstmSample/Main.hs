@@ -36,7 +36,7 @@ instance Parameterized Params
 
 instance Randomizable HypParams Params where
   sample HypParams{..} = Params
-      <$> (sample $ InitialStatesHypParams dev isBiLstm hiddenDim numOfLayers)
+      <$> (sample $ InitialStatesHypParams dev isBiLstm Nothing hiddenDim numOfLayers)
       <*> (sample $ LstmHypParams dev isBiLstm inputDim hiddenDim numOfLayers True projDim)
 
 -- | Test code to check the shapes of output tensors for the cases of
@@ -59,7 +59,7 @@ main = do
   initialParams <- sample hypParams
   inputs <- randnIO' dev [seqLen,iDim]
   gt     <- randnIO' dev [seqLen,oDim]
-  print $ lstmLayers (lParams initialParams) dropout (toDependentTensors $ iParams initialParams) inputs
+  print $ lstmLayers (lParams initialParams) dropout False (toDependentTensors $ iParams initialParams) inputs
   {-
   linearParams <- sample $ LinearHypParams dev True 5 7
   inputTensor <- randnIO' dev [2,11,5]
