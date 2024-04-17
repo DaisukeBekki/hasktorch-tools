@@ -19,11 +19,14 @@ trainingData = [([1],2),([2],4),([3],6),([1],2),([3],7)]
 testData :: [([Float],Float)]
 testData = [([3],7)]
 
+createModel :: Device -> LinearHypParams
+createModel device = LinearHypParams device True 1 1
+
 main :: IO()
 main = do
   let iter = 500::Int
       device = Device CPU 0
-  initModel <- sample $ LinearHypParams device 1 1
+  initModel <- sample $ createModel device
   ((trainedModel,_),losses) <- mapAccumM [1..iter] (initModel,GD) $ \epoc (model,opt) -> do
     let batchLoss = foldLoop trainingData zeroTensor $ \(input,output) loss ->
                       let y' = linearLayer model $ asTensor'' device input
@@ -36,7 +39,7 @@ main = do
   saveParams trainedModel "regression.model"
   --mapM_ (putStr . printf "%2.3f ") $ reverse allLosses
   drawLearningCurve "graph-reg.png" "Learning Curve" [("",reverse losses)]
-  loadedModel <- loadParams (LinearHypParams device 1 1) "regression.model"
+  loadedModel <- loadParams (createModel device) "regression.model"
   print loadedModel
   --
   let output = linearLayer loadedModel $ asTensor'' device $ fst $ head testData
