@@ -50,6 +50,7 @@ dependencies:
 - bytestring >= 0.10
 - yaml >= 0.8.3
 - json-stream >= 0.4
+- matplotlib
 
 library:
   source-dirs: src
@@ -75,6 +76,7 @@ library:
 #  - Torch.LangModel.Juman.Model
   - Torch.Config.EngEmbedRegConfig
   - Torch.Config.JumanLstmConfig
+  - Torch.Model.Utils
   
 executables:
   # test:

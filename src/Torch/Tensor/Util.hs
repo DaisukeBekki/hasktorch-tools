@@ -1,8 +1,11 @@
 module Torch.Tensor.Util (
-    unstack
+    unstack,
+    oneHot',
+    indexOfMax
 ) where
 
-import Torch.Tensor (Tensor(..),select,size)
+import Data.List (maximumBy)
+import Torch.Tensor (Tensor(..),select,size,asTensor,asValue)
 import Torch.Device (Device(..),DeviceType(..))
 import Torch.Functional (Dim(..),stack)
 import Torch.Tensor.TensorFactories (asTensor'')
@@ -28,3 +31,15 @@ main = do
   print $ unstack v
   print $ unstack w
   print $ stack (Dim 0) $ unstack v
+
+
+-- | Given a Tensor like [0.2, 0.3, 0.5], it will put the highest value to 1 and the others to 0
+-- so it would give [0.0, 0.0, 1.0]
+oneHot' :: Tensor -> Tensor
+oneHot' t = asTensor $ replicate imax (0.0 :: Float) ++ [1.0] ++ replicate (tLen - imax - 1) (0.0 :: Float)
+    where imax = indexOfMax (asValue t :: [Float])
+          tLen = length (asValue t :: [Float])
+
+-- | Return the index of the maximum value in the list
+indexOfMax :: Ord a => [a] -> Int
+indexOfMax xs = snd $ maximumBy (\x y -> compare (fst x) (fst y)) (zip xs [0..])

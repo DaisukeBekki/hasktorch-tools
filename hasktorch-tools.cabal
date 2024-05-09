@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: add34cc83dbafac32c97172bdc06927ade56c1ca5a70c327bed3dc5ad827e9a9
+-- hash: 283156bfd3251e9ddab20066ecaf514d86fd43f10174f5a4d986465ccbe2576f
 
 name:           hasktorch-tools
 version:        0.2.0.7
@@ -44,6 +44,7 @@ library
       Torch.Tensor.Util
       Torch.Config.EngEmbedRegConfig
       Torch.Config.JumanLstmConfig
+      Torch.Model.Utils
   other-modules:
       Torch.LangModel.Juman.Dict
       Torch.LangModel.Juman.Model
@@ -74,6 +75,7 @@ library
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -114,6 +116,7 @@ executable first-tensor
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -154,6 +157,7 @@ executable lstmSample
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -194,6 +198,7 @@ executable xor-mlp
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -236,6 +241,7 @@ test-suite lstmTest
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
@@ -278,6 +284,7 @@ test-suite rnnTest
     , json-stream >=0.4
     , libtorch-ffi
     , libtorch-ffi-helper
+    , matplotlib
     , mtl
     , nlp-tools >=0.1.9
     , reflection
