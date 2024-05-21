@@ -3,6 +3,7 @@
 module Torch.Layer.MLP (
   MLPHypParams(..),
   MLPParams(..),
+  MLPHypParamsBiased(..),
   ActName(..),
   mlpLayer
   ) where
@@ -33,10 +34,10 @@ instance Parameterized MLPParams
 
 instance Randomizable MLPHypParams MLPParams where
   sample MLPHypParams{..} = do
-    let layersSpecs = (inputDim,Id):layerSpecs 
+    let layersSpecs = (inputDim,Id):layerSpecs
     layers <- forM (toPairwise layersSpecs) $ \((iDim,_),(outputDim,outputAct)) -> do
           linearL <- sample $ LinearHypParams dev True iDim outputDim
-          return $ (linearL, decodeAct outputAct)
+          return (linearL, decodeAct outputAct)
     return $ MLPParams layers
 
 {-
@@ -44,6 +45,21 @@ instance Show MLPParams where
   show MLPParams{..} =
     "Input Layer:\n" ++ "\nOutput Layer:\n"
 -}
+
+data MLPHypParamsBiased = MLPHypParamsBiased {
+  devBiased :: Device,
+  inputDimBiased :: Int,
+  layerSpecsBiased :: [(Int, ActName, Bool)],
+  firstLayerBias :: Bool
+  } deriving (Eq, Show)
+
+instance Randomizable MLPHypParamsBiased MLPParams where
+  sample MLPHypParamsBiased{..} = do
+    let layersSpecs = (inputDimBiased, Id, firstLayerBias) : layerSpecsBiased
+    layers <- forM (toPairwise layersSpecs) $ \((iDim, _, _), (outputDim, outputAct, hasBias)) -> do
+          linearL <- sample $ LinearHypParams devBiased hasBias iDim outputDim
+          return (linearL, decodeAct outputAct)
+    return $ MLPParams layers
 
 mlpLayer :: MLPParams -> Tensor -> Tensor -- squeezeALlするのでスカラーが返る
 mlpLayer MLPParams{..} input = squeezeAll $ foldl' (\vec (layerParam, act) -> act $ linearLayer layerParam vec) input layers
