@@ -40,11 +40,11 @@ instance Randomizable LstmHypParams LstmParams where
   sample LstmHypParams{..} = 
     LstmParams
       <$> (sample $ LSTM.LstmHypParams dev bidirectional inputSize hiddenSize numLayers hasBias projSize)
-      <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional hiddenSize numLayers)
+      <*> (sample $ LSTM.InitialStatesHypParams dev bidirectional Nothing hiddenSize numLayers)
 
 lstmLayers :: LstmParams -- ^ params
   -> Maybe Double -- ^ dropout
   -> Tensor       -- ^ an input tensor of shape (L,H_in)
   -> (Tensor,(Tensor,Tensor)) -- ^ [his] of shape (L,D*H_out)
 lstmLayers LstmParams{..} dropout = 
-  LSTM.lstmLayers lstmParams dropout (LSTM.toDependentTensors initialStatesParams) 
+  LSTM.lstmLayers lstmParams dropout False (LSTM.toDependentTensors initialStatesParams) 
