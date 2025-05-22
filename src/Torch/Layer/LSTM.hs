@@ -122,7 +122,7 @@ singleLstmLayer bidirectional stateDim singleLstmParams (h0,c0) inputs = unsafeP
             .-> tail             -- | [(<hDim>, <cDim>)] of length seqLen (by removing (h0,c0))
             .-> unzip            -- | ([<hDim>], [<cDim>])
           cLast = last csForward -- | <cDim>
-            .-> singleton         -- | [<cDim>] of length 1
+            .-> (\x -> [x])      -- | [<cDim>] of length 1
             .-> stack (Dim 0)    -- | <1, cDim>
             .-> (\o -> reshape (tail $ shape o) o) -- | <cDim>
           output = hsForward     -- | [<hDim>]

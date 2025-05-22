@@ -11,7 +11,6 @@ module Torch.Layer.Linear (
   ) where  
 
 import GHC.Generics                       --base
-import Data.List        (singleton)       --base
 import Control.Monad    (unless)     --base
 import System.IO.Unsafe (unsafePerformIO) --base
 --hasktorch
@@ -40,7 +39,7 @@ instance Parameterized LinearParams -- Generic
 
 instance Randomizable LinearHypParams LinearParams where
   sample LinearHypParams{..} = do
-    let denom = asTensor'' dev $ singleton $ sqrt $ ((fromIntegral outputDim)::Float)
+    let denom = asTensor'' dev $ [sqrt $ ((fromIntegral outputDim)::Float)]
     m <- xavierUniform' dev [outputDim, inputDim] 
     b <- xavierUniform' dev [outputDim, 1]
     LinearParams
