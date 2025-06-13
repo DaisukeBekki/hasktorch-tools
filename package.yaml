@@ -15,7 +15,7 @@ description:         https://github.com/DaisukeBekki/hasktorch-tools#readme
 
 dependencies:
 # for hasktorch
-- base >= 4.7 && < 5
+- base >= 4.14 && < 5
 - hasktorch >= 0.2
 - libtorch-ffi 
 - libtorch-ffi-helper
