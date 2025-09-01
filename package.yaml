@@ -14,30 +14,8 @@ extra-source-files:
 description:         https://github.com/DaisukeBekki/hasktorch-tools#readme
 
 dependencies:
-# for hasktorch
 - base >= 4.14 && < 5
 - hasktorch >= 0.2
-- libtorch-ffi 
-- libtorch-ffi-helper
-- codegen 
-- async
-- finite-typelits
-- ghc-typelits-extra >= 0.3.1
-- ghc-typelits-knownnat >= 0.7
-- ghc-typelits-natnormalise >= 0.7
-- ghc-typelits-extra
-- ghc-typelits-knownnat
-- ghc-typelits-natnormalise
-- mtl
-- safe-exceptions
-- reflection
-- singletons
-- stm
-- JuicyPixels
-- vector
-- bytestring
-- safe-exceptions
-- zlib >= 0.6
 # for hasktorch-tools
 - text >= 1.2
 - filepath >= 1.4
